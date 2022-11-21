@@ -1,0 +1,9 @@
+networkx==2.8.8
+openai==0.25.0
+protobuf==3.20.*
+PyGithub==1.57
+pyvis==0.3.1
+streamlit==1.14.1
+toml==0.10.2
+toolz==0.12.0
+google-cloud-firestore~=2.7.2
