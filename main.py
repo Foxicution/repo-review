@@ -96,7 +96,7 @@ def get_repo(repo_path: str) -> Repository:
 
 
 def vis_parameters(nx_graph: Graph) -> (str, str):
-    nt = Network(directed=True)
+    nt = Network(directed=True, bgcolor='#f2f3f4')
     nt.from_nx(nx_graph)
     network_data = nt.get_network_data()
     vis_data = {"nodes": network_data[0], "edges": network_data[1]}
