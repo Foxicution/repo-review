@@ -46,7 +46,7 @@ class StreamlitVisGraph extends StreamlitComponentBase<State> {
       graph={this.state.graph}
       options={this.state.options}
       events={this.state.events}
-      style={{height: "1200px", width: this.state.width}}
+      style={{height: "900px", width: this.state.width, fill: 'none'}}
       />
     );
   }
