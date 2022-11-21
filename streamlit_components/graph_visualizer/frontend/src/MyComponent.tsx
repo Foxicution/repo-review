@@ -5,16 +5,16 @@ import {
 } from "streamlit-component-lib"
 import React from "react"
 import Graph from 'react-graph-vis';
-import { networkInterfaces } from "os";
 
-// const options = {
-//   layout: {
-//     hierarchical: false
-//   },
-//   edges: {
-//     color: "#000000"
-//   }
-// };
+const options = {
+  nodes:{
+    font:{
+      color: "#000000",
+      strokeWidth: 2,
+      strokeColor: "#FFFFFF"
+    }
+  }
+};
 
 interface State{
   graph: any,
@@ -36,7 +36,8 @@ class StreamlitVisGraph extends StreamlitComponentBase<State> {
       //   createNode(canvas.x, canvas.y);
       // }
     },
-    options: JSON.parse(this.props.args["options"]),
+    options: {...JSON.parse(this.props.args["options"]),
+  ...options},
     width: this.props.width
   }
   
@@ -46,7 +47,7 @@ class StreamlitVisGraph extends StreamlitComponentBase<State> {
       graph={this.state.graph}
       options={this.state.options}
       events={this.state.events}
-      style={{height: "900px", width: this.state.width, fill: 'none'}}
+      style={{height: "900px", width: this.state.width}}
       />
     );
   }
