@@ -66,7 +66,7 @@ def format_package_string_lines(lines: list[str]):
     return [as_pattern.sub('', line) for line in lines]
 
 
-def append_pak(from_pak: str, to_pak: str, edges: list[(str, str)]) -> (str, str):
+def append_pak(from_pak: str, to_pak: str, edges: list[(str, str)]) -> tuple[str, str]:
     return edges.append((from_pak.strip(), to_pak.strip()))
 
 
@@ -95,7 +95,7 @@ def get_repo(repo_path: str) -> Repository:
     return g.get_repo(repo_path)
 
 
-def vis_parameters(nx_graph: Graph) -> (str, str):
+def vis_parameters(nx_graph: Graph) -> tuple[str, str]:
     nt = Network(directed=True, bgcolor='#f2f3f4')
     nt.from_nx(nx_graph)
     network_data = nt.get_network_data()
@@ -135,11 +135,11 @@ def file_package_imports(import_lines: list[str], file_name: str) -> list[str]:
     return package_imports
 
 
-def hex_to_rgb(h: str) -> (int, int, int):
+def hex_to_rgb(h: str) -> tuple[int, int, int]:
     return tuple(int(h.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4))
 
 
-def rgb_to_hex(rgb: (int, int, int)) -> str:
+def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
     return '#' + ''.join(hex(x)[2:].zfill(2) for x in rgb)
 
 
