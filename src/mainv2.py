@@ -1,4 +1,5 @@
 from github import Github, GithubException
+from github.ContentFile import ContentFile
 from github.Repository import Repository
 from option import Result, Option, Ok, Err, NONE, Some
 from lambdas import _
@@ -38,6 +39,10 @@ def main():
         text_input('Input the link of the repository you want to analyse'),
         partial(call_on_input, function=get_repository),
         unpack_repository)
+    if repository.is_some:
+        print(repository.unwrap().get_contents())
+    
+
 
 if __name__ == '__main__':
     main()
