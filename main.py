@@ -225,9 +225,9 @@ def read_pickle(file_path):
 def setup(secrets: dict) -> tuple[firestore.Client, dict, Github]:
     key_dict = json.loads(secrets["db_key"])
     credentials = service_account.Credentials.from_service_account_info(key_dict)
-    return firestore.Client(credentials=credentials), \
-           json.loads(secrets["prompts"]), \
-           authenticate_github(json.loads(secrets['github_token'])['secondary'])
+    return (firestore.Client(credentials=credentials),
+           json.loads(secrets["prompts"]),
+           authenticate_github(json.loads(secrets['github_token'])['secondary']))
 
 
 database, prompts, g = setup(st.secrets)

@@ -2,7 +2,7 @@ import networkx as nx
 from copy import deepcopy
 
 
-def fix_edges(graph_nodes: list[dict]) -> (list[dict], tuple[str, str, float], list[str]):
+def fix_edges(graph_nodes: list[dict]) -> tuple[list[dict], tuple[str, str, float], list[str]]:
     edge_weight = 5.0
     file_names = [n['id'] for n in graph_nodes]
     graph_edges = []
@@ -34,7 +34,7 @@ def without_keys(d, keys):
     return {k: v for k, v in d.items() if k not in keys}
 
 
-def get_graphs(edge_property_list: list[dict]) -> (nx.Graph, nx.Graph):
+def get_graphs(edge_property_list: list[dict]) -> tuple[nx.Graph, nx.Graph]:
     nodes, edges, files = fix_edges(edge_property_list)
     graph = nx.DiGraph()
     graph.add_weighted_edges_from(edges)
