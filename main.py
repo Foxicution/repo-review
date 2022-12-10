@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from streamlit_components.graph_visualizer import my_component
+from src.streamlit_components.graph_visualizer import my_component
 from networkx import Graph
 from pyvis.network import Network
 from github import Github, Repository
