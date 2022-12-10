@@ -49,8 +49,6 @@ def files(repository: Option[Repository]) -> Iterator[ContentFile|None]:
 def get_files(repository_link: str) -> Iterator[ContentFile|None]:
     return pipe(repository_link, repository, files)
 
-def main():
-    pipe(text_input('Input repository link'), repository, files, list, print)
-    
-if __name__ == '__main__':
-    main()
+def file_list(repository_link: str) -> List[ContentFile]:
+    """Returns an empty list if the repository link is empty"""
+    return pipe(repository_link, get_files, list)
