@@ -8,10 +8,9 @@ from streamlit.runtime.secrets import Secrets
 from json import loads
 from toolz.functoolz import pipe
 from functools import partial
-from typing import TypeVar, Callable, Any
+from typing import List, TypeVar, Callable, Any
 from decorator import decorator
-
-T = TypeVar('T')
+from custom_types import T
 
 
 @decorator
@@ -31,18 +30,22 @@ def get_repository(repository_link: str, hooks: Github = github_hooks()) -> Resu
 def call_on_input(input, function: Callable[..., T]) -> Option[T]:
     return Some(function(input)) if input else NONE
 
-def unpack_repository(repository: Option[Result[Repository]]) -> Option[Repository]:
+def unpack_repository(repository: Option[Result[Repository, GithubException]]) -> Option[Repository]:
     return repository.map(lambda result: result.unwrap())
 
-def main():
-    repository: Option[Repository] = pipe(
-        text_input('Input the link of the repository you want to analyse'),
+def repository(repository_link: str) -> Option[Repository]:
+    return pipe(
+        repository_link,
         partial(call_on_input, function=get_repository),
         unpack_repository)
-    if repository.is_some:
-        print(repository.unwrap().get_contents())
+
+def contents(repository_link: str) -> Option[List[ContentFile] | ContentFile]:
+    return repository(repository_link).map(lambda repository: repository.get_contents(''))
+
+def main():
+    repository_contents = contents(text_input('Input repository link'))
+    if repository_contents.is_some:
+        print(repository_contents.unwrap())
     
-
-
 if __name__ == '__main__':
     main()
