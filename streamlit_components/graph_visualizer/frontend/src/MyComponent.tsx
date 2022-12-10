@@ -36,8 +36,7 @@ class StreamlitVisGraph extends StreamlitComponentBase<State> {
       //   createNode(canvas.x, canvas.y);
       // }
     },
-    options: {...JSON.parse(this.props.args["options"]),
-  ...options},
+    options: {...JSON.parse(this.props.args["options"]), ...options},
     width: this.props.width
   }
   
