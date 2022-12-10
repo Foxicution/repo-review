@@ -34,7 +34,7 @@ def contents(repository: Option[Repository], directory: str = '') -> Option[List
     return repository.map(lambda repository: repository.get_contents(directory))
 
 #TODO: Reduce nesting and size of this function
-def files(repository: Option[Repository]) -> Iterator[ContentFile]:
+def files(repository: Option[Repository]) -> Iterator[ContentFile|None]:
     base_contents = contents(repository)
     if base_contents.is_none:
         return None
@@ -46,7 +46,7 @@ def files(repository: Option[Repository]) -> Iterator[ContentFile]:
         else:
             yield content
 
-def get_files(repository_link: str) -> Iterator[ContentFile]:
+def get_files(repository_link: str) -> Iterator[ContentFile|None]:
     return pipe(repository_link, repository, files)
 
 def main():
