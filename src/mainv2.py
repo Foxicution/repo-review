@@ -3,7 +3,7 @@ from github.ContentFile import ContentFile
 from github.Repository import Repository
 from option import Result, Option, Ok, Err, NONE, Some
 from lambdas import _
-from streamlit import secrets, text_input
+from streamlit import secrets, text_input, text
 from streamlit.runtime.secrets import Secrets
 from json import loads
 from toolz.functoolz import pipe
@@ -44,8 +44,7 @@ def contents(repository_link: str) -> Option[List[ContentFile] | ContentFile]:
 
 def main():
     repository_contents = contents(text_input('Input repository link'))
-    if repository_contents.is_some:
-        print(repository_contents.unwrap())
+    repository_contents.map(lambda contents: text(contents))
     
 if __name__ == '__main__':
     main()
