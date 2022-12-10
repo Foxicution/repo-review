@@ -9,7 +9,7 @@ from typing import Optional, Callable, Any, Pattern, AnyStr
 from functools import wraps
 import re
 from toolz.functoolz import pipe
-from python_components.types import T, Package
+from python_components.old_types import T, Package
 from python_components.networkx_graphing import get_graphs, without_keys
 import pickle
 import json
