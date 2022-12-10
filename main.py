@@ -1,5 +1,4 @@
 import os
-import random
 import streamlit as st
 from streamlit_components.graph_visualizer import my_component
 from networkx import Graph
