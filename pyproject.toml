@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repo-review"
-version = "2022.12.13"
+version = "0.1.0"
 description = ""
 authors = ["Foxicution <foxicution@gmail.com>"]
 readme = "README.md"
@@ -19,6 +19,8 @@ toolz = "^0.12.0"
 google-cloud-firestore = "^2.7.3"
 lambdas = "^0.1.0"
 option = "^2.1.0"
+fastapi = {extras = ["all"], version = "^0.88.0"}
+jinja2 = "^3.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
