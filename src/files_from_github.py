@@ -3,7 +3,7 @@ from github.ContentFile import ContentFile
 from github.Repository import Repository
 from option import Result, Option
 from lambdas import _
-from streamlit import secrets, text_input, cache
+from streamlit import secrets, cache
 from streamlit.runtime.secrets import Secrets
 from json import loads
 from toolz.functoolz import pipe
