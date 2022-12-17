@@ -1,7 +1,7 @@
 # import pickle
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import networkx as nx
@@ -13,12 +13,12 @@ function_identifiers = ['function_definition', 'function_item']
 
 @dataclass
 class CustomLanguageSyntaxParser:
-    name: str
-    extension: str
-    parser: object
-    function_identifiers: list[str]
-    import_identifiers: list[str]
-    call_identifiers: list[str]
+    name: str = 'python'
+    extension: str = 'py'
+    parser: object = get_parser('python')
+    function_identifiers: list[str] = field(default_factory=list)
+    import_identifiers: list[str] = field(default_factory=list)
+    call_identifiers: list[str] = field(default_factory=list)
 
     def get_function_definitions(self, tree_node) -> list:
         functions = []
@@ -31,11 +31,6 @@ class CustomLanguageSyntaxParser:
 
     def get_imports(self, tree_node) -> list:
         imports = []
-        for child in tree_node.children:
-            if child.type in self.import_identifiers:
-                imports.append(child)
-            if child.children is not None:
-                imports += self.get_imports(child)
         return imports
 
     def get_calls_in_node(self, tree_node) -> list:
@@ -47,8 +42,163 @@ class CustomLanguageSyntaxParser:
                 node_calls += self.get_calls_in_node(child)
         return node_calls
 
+    def build_node_call_map(self, tree_node) -> dict:
+        call_map = defaultdict(list)
+        calls = self.get_calls_in_node(tree_node)
+        for call in calls:
+            if call.named_child_count >= 2 and call.named_children[0].named_child_count >= 2:
+                module_name = call.named_children[0].named_children[0].text.decode('ascii')
+                function_name = call.named_children[0].named_children[1].text.decode('ascii')
+                call_map[module_name].append(function_name)
+        return call_map
 
-PythonSyntaxParser = CustomLanguageSyntaxParser(
+    def build_call_graph(
+        self,
+        tree_node,
+        cur_graph,
+        all_function_definitions=None,
+        module_name=None,
+        imported_modules=None,
+    ):
+        function_definitions = self.get_function_definitions(tree_node)
+        function_definition_names = [
+            self.get_fun_name(function_definition)
+            for function_definition in function_definitions
+        ]
+        for function_definition in function_definitions:
+            self.function_to_call_graph(
+                function_definition,
+                cur_graph,
+                function_definition_names,
+                module_name,
+                imported_modules,
+            )
+
+    def function_to_call_graph(
+        self,
+        function,
+        full_graph,
+        function_definition_names=None,
+        module_name=None,
+        imported_modules=None,
+    ):
+        function_name = self.get_fun_name(function)
+        function_calls = self.get_calls_in_node(function)
+        add_module_name = function_definition_names is not None and module_name is not None
+        if add_module_name:
+            function_name = module_name + '.' + function_name
+        full_graph.add_node(function_name, content=function.text.decode('ascii'))
+        for function_call in function_calls:
+            function_call_name = self.function_call_to_text(function_call)
+            if add_module_name:
+                if function_call_name in function_definition_names:
+                    function_call_name = module_name + '.' + function_call_name
+                elif imported_modules is not None:
+                    matches_imported_module = match_function_call_to_imported_module(
+                        function_call_name, imported_modules
+                    )
+                    if matches_imported_module is not None:
+                        function_call_name = (
+                            matches_imported_module.module_base_name
+                            + '.'
+                            + function_call_name
+                        )
+            full_graph.add_node(function_call_name)
+            full_graph.add_edge(function_name, function_call_name)
+
+    def get_fun_name(self, node):
+        name = [ch.text.decode('ascii') for ch in node.children if ch.type == 'identifier'][0]
+        return name
+
+    def function_call_to_text(self, function_call):
+        function_call_text = ''
+        for child in function_call.children:
+            if child.type == 'attribute':
+                function_call_text += child.text.decode('ascii')
+                break
+            elif child.type == 'identifier':
+                function_call_text += child.text.decode('ascii')
+                break
+        return function_call_text
+
+
+@dataclass
+class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
+    name: str = 'javascript'
+    extension: str = 'js'
+    parser: object = get_parser('javascript')
+    function_identifiers: list[str] = field(
+        default_factory=lambda: ['function_definition', 'function_item']
+    )
+    import_identifiers: list[str] = field(
+        default_factory=lambda: [
+            'import_statement',
+            'import_from_statement',
+            'lexical_declaration',
+            'require_call',
+        ]
+    )
+    call_identifiers: list[str] = field(default_factory=lambda: ['call_expression'])
+
+    def get_imports(self, root_node) -> list:
+        imports = []
+        for child in root_node.children:
+            if child.type == 'lexical_declaration':  # require parsing
+                try:
+
+                    name = (
+                        child.named_children[0]
+                        .named_children[1]
+                        .named_children[1]
+                        .named_children[0]
+                        .text.decode('ascii')
+                    )
+                    imported_module = ImportedModule(module_base_name=name)
+                    imports.append(imported_module)
+                except IndexError:
+                    # Is not an import
+                    pass
+            if child.children is not None:
+                imports += self.get_imports(child)
+        return imports
+
+    def get_calls_in_node(self, tree_node) -> list:
+        node_calls = []
+        for child in tree_node.children:
+            if child.type in self.call_identifiers:
+                call_node = child.named_children[0]
+                if call_node.type == 'member_expression':
+                    node_calls.append(call_node)
+            if child.children is not None:
+                node_calls += self.get_calls_in_node(child)
+        return node_calls
+
+    def build_node_call_map(self, tree_node) -> dict:
+        call_map = defaultdict(list)
+        calls = self.get_calls_in_node(tree_node)
+        for call in calls:
+            if call.named_child_count >= 2 and call.named_children[0].named_child_count >= 2:
+                module_name = call.named_children[0].named_children[0].text.decode('ascii')
+                function_name = call.named_children[0].named_children[1].text.decode('ascii')
+                call_map[module_name].append(function_name)
+        return call_map
+
+
+@dataclass
+class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
+    def get_imported_modules(self, tree_node):
+        used_modules = []
+        for child in tree_node.children:
+            if child.type == 'import_statement':
+                used_modules.append(ImportedModule.from_tree_node(child))
+            if child.type == 'import_from_statement':
+                used_modules.append(ImportedModule.from_tree_node(child))
+            if child.children is not None:
+                used_modules += self.get_imported_modules(child)
+        return used_modules
+
+
+PythonSyntaxParser = CustomPythonSyntaxParser(
     name='python',
     extension='py',
     parser=get_parser('python'),
@@ -57,14 +207,7 @@ PythonSyntaxParser = CustomLanguageSyntaxParser(
     call_identifiers=['call'],
 )
 
-JavascriptSyntaxParser = CustomLanguageSyntaxParser(
-    name='javascript',
-    extension='js',
-    parser=get_parser('javascript'),
-    function_identifiers=['function_definition', 'function_item'],
-    import_identifiers=['import_statement', 'import_from_statement'],
-    call_identifiers=['call'],
-)
+JavascriptSyntaxParser = CustomJavascriptSyntaxParser()
 
 CSharpSyntaxParser = CustomLanguageSyntaxParser(
     name='c-sharp',
@@ -160,135 +303,21 @@ class ImportedModule:
         return f'{self.module_base_name} as {self.module_name_as}'
 
 
-def get_fun_name(node):
-    name = [ch.text.decode('ascii') for ch in node.children if ch.type == 'identifier'][0]
-    return name
-
-
-def get_function_definitions(tree_node):
-    functions = []
-    for child in tree_node.children:
-        if child.type in function_identifiers:
-            functions.append(child)
-        if child.children is not None:
-            functions += get_function_definitions(child)
-    return functions
-
-
-def get_calls_in_node(tree_node):
-    node_calls = []
-    for child in tree_node.children:
-        if child.type == 'call':
-            node_calls.append(child)
-        if child.children is not None:
-            node_calls += get_calls_in_node(child)
-    return node_calls
-
-
-def function_call_to_text(function_call):
-    function_call_text = ''
-    for child in function_call.children:
-        if child.type == 'attribute':
-            function_call_text += child.text.decode('ascii')
-            break
-        elif child.type == 'identifier':
-            function_call_text += child.text.decode('ascii')
-            break
-    return function_call_text
-
-
-def function_to_call_graph(
-    function,
-    full_graph,
-    function_definition_names=None,
-    module_name=None,
-    imported_modules=None,
-):
-    function_name = get_fun_name(function)
-    function_calls = get_calls_in_node(function)
-    add_module_name = function_definition_names is not None and module_name is not None
-    if add_module_name:
-        function_name = module_name + '.' + function_name
-    full_graph.add_node(function_name, content=function.text.decode('ascii'))
-    for function_call in function_calls:
-        function_call_name = function_call_to_text(function_call)
-        if add_module_name:
-            if function_call_name in function_definition_names:
-                function_call_name = module_name + '.' + function_call_name
-            elif imported_modules is not None:
-                matches_imported_module = match_function_call_to_imported_module(
-                    function_call_name, imported_modules
-                )
-                if matches_imported_module is not None:
-                    function_call_name = (
-                        matches_imported_module.module_base_name + '.' + function_call_name
-                    )
-        full_graph.add_node(function_call_name)
-        full_graph.add_edge(function_name, function_call_name)
-
-
-def build_call_graph(
-    tree_node,
-    cur_graph,
-    all_function_definitions=None,
-    module_name=None,
-    imported_modules=None,
-):
-    function_definitions = get_function_definitions(tree_node)
-    function_definition_names = [
-        get_fun_name(function_definition) for function_definition in function_definitions
-    ]
-    for function_definition in function_definitions:
-        function_to_call_graph(
-            function_definition,
-            cur_graph,
-            function_definition_names,
-            module_name,
-            imported_modules,
-        )
-
-
-def build_node_call_map(tree_node):
-    call_map = defaultdict(list)
-    calls = get_calls_in_node(tree_node)
-    for call in calls:
-        if call.named_child_count >= 2 and call.named_children[0].named_child_count >= 2:
-            module_name = call.named_children[0].named_children[0].text.decode('ascii')
-            function_name = call.named_children[0].named_children[1].text.decode('ascii')
-            call_map[module_name].append(function_name)
-    return call_map
-
-
-def get_imported_modules(tree_node):
-    used_modules = []
-    for child in tree_node.children:
-        if child.type == 'import_statement':
-            used_modules.append(ImportedModule.from_tree_node(child))
-        if child.type == 'import_from_statement':
-            used_modules.append(ImportedModule.from_tree_node(child))
-        if child.children is not None:
-            used_modules += get_imported_modules(child)
-    return used_modules
-
-
 def parse_file(filepath, file_bytes=None, module_name=None):
     # Get the language name from the file extension
+    # TODO: Add error handling for unsupported languages
     custom_language_parser = languages[filepath.suffix[1:]]
-    parser = custom_language_parser.parser
-    language_name = custom_language_parser.name
-    # Get the parser for the language
-    # parser = get_parser(language_name)
     if file_bytes is None:
         file_bytes = bytes(open(filepath, 'r').read(), 'utf-8')
     # Parse the file
-    tree = parser.parse(file_bytes)
+    tree = custom_language_parser.parser.parse(file_bytes)
     local_call_graph = nx.DiGraph()
     # TODO: Traverse the tree only once
-    module_call_map = build_node_call_map(tree.root_node)  # noqa
-    function_definitions = get_function_definitions(tree.root_node)
-    function_calls = get_calls_in_node(tree.root_node)
-    imported_modules = get_imported_modules(tree.root_node)
-    build_call_graph(
+    module_call_map = custom_language_parser.build_node_call_map(tree.root_node)  # noqa
+    function_definitions = custom_language_parser.get_function_definitions(tree.root_node)
+    function_calls = custom_language_parser.get_calls_in_node(tree.root_node)
+    imported_modules = custom_language_parser.get_imports(tree.root_node)
+    custom_language_parser.build_call_graph(
         tree.root_node,
         local_call_graph,
         function_definitions,
@@ -300,7 +329,7 @@ def parse_file(filepath, file_bytes=None, module_name=None):
 
     parsed_file = ParsedFile(
         filepath=filepath,
-        language_name=language_name,
+        language_name=custom_language_parser.name,
         imported_modules=imported_modules,
         function_definitions=function_definitions,
         function_calls=function_calls,
@@ -430,21 +459,7 @@ def get_filelist_from_gh_repo(repo, max_depth=3):
     return filelist
 
 
-def main():
-    # Get the graph for the file
-    # file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
-    #     Path('..') / 'test_files' / 'repo-review'
-    # )
-    # graph = make_node_graph_for_file('main.py')
-    # graph = make_node_graph_for_file('test_files/rs_test_0.rs')
-    # graph = make_node_graph_for_file('../test_files/repo-review/main.py')
-    # Print the graph
-
-    # nx.draw_networkx(file_level_graph)
-    # plt.show()
-    #
-    # nx.draw_networkx(full_function_call_graph)
-    # plt.show()
+def github_python_test():
     import os
 
     from github import Github
@@ -456,9 +471,30 @@ def main():
     logging.log(logging.DEBUG, f'Generating graph for {len(filelist)} files')
     file_level_graph, full_function_call_graph = get_network_from_gh_filelist(filelist)
 
-    file_level_graph.show('files.html')
+    file_level_graph.show('python_files.html')
 
-    full_function_call_graph.show('all.html')
+    full_function_call_graph.show('python_all.html')
+
+
+def javascript_test():
+    file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
+        local_project_dir=Path('/home/mati/projects/atom')
+    )
+
+    nt_files = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
+    nt_files.from_nx(file_level_graph)
+
+    nt_all = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
+    nt_all.from_nx(full_function_call_graph)
+
+    nt_files.show('javascript_files.html')
+
+    nt_all.show('javascript_all.html')
+
+
+def main():
+    github_python_test()
+    javascript_test()
 
 
 if __name__ == '__main__':
