@@ -248,6 +248,18 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
+name = "cloudpickle"
+version = "2.2.0"
+description = "Extended pickling support for Python objects"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "cloudpickle-2.2.0-py3-none-any.whl", hash = "sha256:7428798d5926d8fcbfd092d18d01a2a03daf8237d8fcdc8095d256b8490796f0"},
+    {file = "cloudpickle-2.2.0.tar.gz", hash = "sha256:3f4219469c55453cfe4737e564b67c2a149109dabf7f242478948b895f61106f"},
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -1989,6 +2001,18 @@ docs = ["sphinx (>=1.6.5)", "sphinx-rtd-theme"]
 tests = ["hypothesis (>=3.27.0)", "pytest (>=3.2.1,!=3.3.0)"]
 
 [[package]]
+name = "pynvml"
+version = "11.4.1"
+description = "Python Bindings for the NVIDIA Management Library"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pynvml-11.4.1-py3-none-any.whl", hash = "sha256:d27be542cd9d06558de18e2deffc8022ccd7355bc7382255d477038e7e424c6c"},
+    {file = "pynvml-11.4.1.tar.gz", hash = "sha256:b2e4a33b80569d093b513f5804db0c7f40cfc86f15a013ae7a8e99c5e175d5dd"},
+]
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.2"
 description = "Persistent/Functional/Immutable data structures"
@@ -2386,6 +2410,38 @@ files = [
 
 [package.dependencies]
 pyasn1 = ">=0.1.3"
+
+[[package]]
+name = "scalene"
+version = "1.5.16"
+description = "Scalene: A high-resolution, low-overhead CPU, GPU, and memory profiler for Python"
+category = "dev"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "scalene-1.5.16-cp310-cp310-macosx_10_15_universal2.whl", hash = "sha256:89df6f28dce1170e6875ebae5424dc928edb281a9d1f080e60ed67932d5fc099"},
+    {file = "scalene-1.5.16-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:cf64e179c2d24639f158d89f978d5d7bedc524f423683fd5d915c3b1274b3a74"},
+    {file = "scalene-1.5.16-cp310-cp310-win_amd64.whl", hash = "sha256:04c89dc567735454cf6d415287c19d9458a0ac7204f8af75670fa8d03a5a61a1"},
+    {file = "scalene-1.5.16-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:f1adb93a00b1ecdef4e1bfcfedf5453b74b5f7ece1637cb6180321e8b4132486"},
+    {file = "scalene-1.5.16-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:bab76332f3d2c93336570b40cd6a414ee6bc5027a67ea6e6fea88533d884d377"},
+    {file = "scalene-1.5.16-cp311-cp311-win_amd64.whl", hash = "sha256:c8d611620278df7b6793f40ee41aadc83e72347ca048e1caed76d3446a1c31ff"},
+    {file = "scalene-1.5.16-cp37-cp37m-macosx_10_15_universal2.whl", hash = "sha256:9d8ae9ed42af29324b09bcf4769668ec3de1da1a0e07bdd4dbe590f8667bc24a"},
+    {file = "scalene-1.5.16-cp37-cp37m-manylinux_2_24_x86_64.whl", hash = "sha256:6cd734c96074536e646cc020920dfb5e3075a0b6610f09ab44dd8e381c2176ee"},
+    {file = "scalene-1.5.16-cp38-cp38-macosx_10_15_universal2.whl", hash = "sha256:4c6940fc281a479449f126fc0e7003ad1fd903cc5009a93ca69041a0170d397f"},
+    {file = "scalene-1.5.16-cp38-cp38-manylinux_2_24_x86_64.whl", hash = "sha256:2a5da3756ada283b494a1b66b08297905531e1450f2143cdc58a222a257908d4"},
+    {file = "scalene-1.5.16-cp38-cp38-win_amd64.whl", hash = "sha256:b6467288c43e65333063bd522c83486a4895869a101a94d0b13a58effa456611"},
+    {file = "scalene-1.5.16-cp39-cp39-macosx_10_15_universal2.whl", hash = "sha256:ff7a2e9587ef2d268c81f2684b458a29c1d591f1225c13f7954e0d5d655abfdd"},
+    {file = "scalene-1.5.16-cp39-cp39-manylinux_2_24_x86_64.whl", hash = "sha256:4b8da9edba2400a6ce1a8daada03fd9f310963a4c04f59d3e7c520e0103a3a9b"},
+    {file = "scalene-1.5.16-cp39-cp39-win_amd64.whl", hash = "sha256:bc0bd7f9111c8a66f9b83fc362f8e610693181e9de28bdc42efc3a249db588e2"},
+    {file = "scalene-1.5.16.tar.gz", hash = "sha256:2b09aa9b3c5e59c87a08db38771cb75fc0b4c504e93b4be2203f01177ca054b0"},
+]
+
+[package.dependencies]
+cloudpickle = ">=1.5.0"
+Jinja2 = ">=3.0.3"
+pynvml = ">=11.0.0"
+rich = ">=10.7.0"
+wheel = ">=0.36.1"
 
 [[package]]
 name = "semver"
@@ -3083,6 +3139,21 @@ files = [
 ]
 
 [[package]]
+name = "wheel"
+version = "0.38.4"
+description = "A built-package format for Python"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "wheel-0.38.4-py3-none-any.whl", hash = "sha256:b60533f3f5d530e971d6737ca6d58681ee434818fab630c83a734bb10c083ce8"},
+    {file = "wheel-0.38.4.tar.gz", hash = "sha256:965f5259b566725405b05e7cf774052044b1ed30119b5d586b2703aafe8719ac"},
+]
+
+[package.extras]
+test = ["pytest (>=3.0.0)"]
+
+[[package]]
 name = "wrapt"
 version = "1.14.1"
 description = "Module for decorators, wrappers and monkey patching."
@@ -3175,4 +3246,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "06ee4e5ce4cb7ab1f5de081c93ef4071c16ebc727cb1337daccb975bf107db73"
+content-hash = "a6c30571b75f57478aa3ee2e98bad786f61361eb2f541869de0b3c8d868bc907"
