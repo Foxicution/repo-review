@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from tree_sitter_languages import get_parser
+from tree_sitter_languages import get_language, get_parser
 
 
 class ImportedModule:
@@ -54,6 +54,7 @@ class CustomLanguageSyntaxParser:
     name: str = 'python'
     extension: str = 'py'
     parser: object = get_parser('python')
+    language: object = get_language('python')
     function_identifiers: list[str] = field(default_factory=list)
     import_identifiers: list[str] = field(default_factory=list)
     call_identifiers: list[str] = field(default_factory=list)
@@ -81,13 +82,28 @@ class CustomLanguageSyntaxParser:
         return node_calls
 
     def build_node_call_map(self, tree_node) -> dict:
+        fun_def_query = self.language.query(
+            """
+            (function_definition
+              name: (identifier) @function.def)
+
+            """
+        )
+        fun_call_query = self.language.query(
+            """
+            (call
+            function: (identifier) @function.call)
+            """
+        )
+
+        fun_definitions = fun_def_query.captures(tree_node)
         call_map = defaultdict(list)
-        calls = self.get_calls_in_node(tree_node)
-        for call in calls:
-            if call.named_child_count >= 2 and call.named_children[0].named_child_count >= 2:
-                module_name = call.named_children[0].named_children[0].text.decode('ascii')
-                function_name = call.named_children[0].named_children[1].text.decode('ascii')
-                call_map[module_name].append(function_name)
+
+        for fun_definition in fun_definitions:
+            calls = fun_call_query.captures(fun_definition[0])
+            call_map[fun_definition[0].text.decode('ascii')] = [
+                call[0].text.decode('ascii') for call in calls
+            ]
         return call_map
 
     def build_call_graph(
@@ -165,6 +181,7 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
     name: str = 'javascript'
     extension: str = 'js'
     parser: object = get_parser('javascript')
+    language: object = get_language('javascript')
     function_identifiers: list[str] = field(
         default_factory=lambda: ['function_definition', 'function_item']
     )
@@ -191,7 +208,16 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
                         .named_children[0]
                         .text.decode('ascii')
                     )
-                    imported_module = ImportedModule(module_base_name=name)
+                    module_names = [
+                        child.text.decode('ascii')
+                        for child in (
+                            child.named_children[0].named_children[0].named_children
+                        )
+                    ]
+                    # name = child.children_by_field_name()
+                    imported_module = ImportedModule(
+                        module_base_name=name, imported_objects=module_names
+                    )
                     imports.append(imported_module)
                 except IndexError:
                     # Is not an import
@@ -240,6 +266,7 @@ PythonSyntaxParser = CustomPythonSyntaxParser(
     name='python',
     extension='py',
     parser=get_parser('python'),
+    language=get_language('python'),
     function_identifiers=['function_definition', 'function_item'],
     import_identifiers=['import_statement', 'import_from_statement'],
     call_identifiers=['call'],
@@ -275,7 +302,7 @@ RustSyntaxParser = CustomLanguageSyntaxParser(
 )
 
 # Top 20 programming languages and their extensions
-languages = {
+LANGUAGES = {
     'py': PythonSyntaxParser,
     'js': JavascriptSyntaxParser,
     'cs': CSharpSyntaxParser,

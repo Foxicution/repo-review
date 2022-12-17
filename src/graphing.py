@@ -5,7 +5,7 @@ from pathlib import Path
 import networkx as nx
 from pyvis.network import Network
 
-from custom_language_parsers import languages
+from custom_language_parsers import LANGUAGES
 
 
 class ParsedFile:
@@ -34,7 +34,7 @@ class ParsedFile:
 def parse_file(filepath, file_bytes=None, module_name=None):
     # Get the language name from the file extension
     # TODO: Add error handling for unsupported languages
-    custom_language_parser = languages[filepath.suffix[1:]]
+    custom_language_parser = LANGUAGES[filepath.suffix[1:]]
     if file_bytes is None:
         file_bytes = bytes(open(filepath, 'r').read(), 'utf-8')
     # Parse the file
@@ -127,7 +127,7 @@ def make_node_call_graph_for_project(
         depth = len(filepath.parts)
         if depth - project_depth > max_depth:
             continue
-        if filepath.suffix[1:] in languages:
+        if filepath.suffix[1:] in LANGUAGES:
             module_name = '.'.join(filepath.parts[project_depth:]).replace(
                 filepath.suffix, ''
             )
