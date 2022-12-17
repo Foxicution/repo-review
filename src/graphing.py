@@ -68,8 +68,10 @@ def parse_file(filepath, file_bytes=None, module_name=None):
 
 
 def parsed_file_is_imported(imported_modules, parsed_file):
+    filepath_stem = parsed_file.filepath.stem
     for imported_module in imported_modules:
-        if parsed_file.filepath.stem in imported_module.module_base_name.split('.'):
+        imported_module_split = imported_module.module_base_name.split('.')
+        if filepath_stem == imported_module_split or filepath_stem in imported_module_split:
             return True
     return False
 
@@ -210,7 +212,7 @@ def javascript_test():
 
 
 def main():
-    github_python_test()
+    # github_python_test()
     javascript_test()
 
 

@@ -195,35 +195,56 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
     )
     call_identifiers: list[str] = field(default_factory=lambda: ['call_expression'])
 
-    def get_imports(self, root_node) -> list:
-        imports = []
-        for child in root_node.children:
-            if child.type == 'lexical_declaration':  # require parsing
-                try:
+    def clean_node_js_import_text(self, import_text):
+        import_text = import_text.replace('./', '')
+        return import_text
 
-                    name = (
-                        child.named_children[0]
-                        .named_children[1]
-                        .named_children[1]
-                        .named_children[0]
-                        .text.decode('ascii')
-                    )
-                    module_names = [
-                        child.text.decode('ascii')
-                        for child in (
-                            child.named_children[0].named_children[0].named_children
-                        )
-                    ]
-                    # name = child.children_by_field_name()
-                    imported_module = ImportedModule(
-                        module_base_name=name, imported_objects=module_names
-                    )
-                    imports.append(imported_module)
-                except IndexError:
-                    # Is not an import
-                    pass
-            if child.children is not None:
-                imports += self.get_imports(child)
+    def get_imports(self, root_node) -> list:
+        # TODO: Add support for typical js import statements
+        imports = []
+        # Let's keep this in case we need it later
+        # node_imported_module_single = self.language.query(
+        #     """
+        #     (variable_declarator
+        #         (identifier) @import)
+        #     """
+        # )
+        node_imported_modules = self.language.query(
+            """
+            (object_pattern
+                (shorthand_property_identifier_pattern) @import)
+            """
+        )
+        # use arguments to get the name of the module
+        node_module_import_source_query = self.language.query(
+            """
+            (lexical_declaration
+                (variable_declarator
+                    (call_expression
+                        (arguments
+                            (string
+                                (string_fragment) @import)))))
+            """
+        )
+
+        for import_statement in node_module_import_source_query.captures(root_node):
+            imported_module_name = import_statement[0].text.decode('ascii')
+            imported_module_name = self.clean_node_js_import_text(imported_module_name)
+
+            imported_inner_modules = node_imported_modules.captures(
+                import_statement[0].parent.parent.parent.parent
+            )
+            imported_inner_modules = [
+                imported_module[0].text.decode('ascii')
+                for imported_module in imported_inner_modules
+            ]
+
+            imported_module = ImportedModule(
+                module_base_name=imported_module_name,
+                imported_objects=imported_inner_modules,
+            )
+
+            imports.append(imported_module)
         return imports
 
     def get_calls_in_node(self, tree_node) -> list:
