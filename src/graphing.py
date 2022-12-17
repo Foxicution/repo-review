@@ -1,44 +1,111 @@
 # import pickle
 from collections import defaultdict
 from pathlib import Path
+from dataclasses import dataclass
 
 import networkx as nx
 from pyvis.network import Network
 from tree_sitter_languages import get_parser
+import logging
 
-# Top 20 programming languages and their extensions
-languages = {
-    'c': 'c',
-    'cpp': 'cpp',
-    'csharp': 'cs',
-    'go': 'go',
-    'java': 'java',
-    'javascript': 'js',
-    'php': 'php',
-    'python': 'py',
-    'ruby': 'rb',
-    'rust': 'rs',
-    'scala': 'scala',
-    'swift': 'swift',
-    'typescript': 'ts',
-    'bash': 'sh',
-    'clojure': 'clj',
-    'elixir': 'ex',
-    'erlang': 'erl',
-    'haskell': 'hs',
-    'lua': 'lua',
-    'perl': 'pl',
-}
-
-languages = {v: k for k, v in languages.items()}
 
 function_identifiers = ['function_definition', 'function_item']
 
-# Open the pickle file in binary mode
-# with open('../EleutherAI_o_gpt-neox.pk', 'rb') as file:
-#     # Load the objects from the file
-#     data = pickle.load(file)
-#     print(data)
+
+@dataclass
+class CustomLanguageSyntaxParser:
+    name: str
+    extension: str
+    parser: object
+    function_identifiers: list[str]
+    import_identifiers: list[str]
+    call_identifiers: list[str]
+
+    def get_function_definitions(self, tree_node) -> list:
+        functions = []
+        for child in tree_node.children:
+            if child.type in self.function_identifiers:
+                functions.append(child)
+            if child.children is not None:
+                functions += self.get_function_definitions(child)
+        return functions
+
+    def get_imports(self, tree_node) -> list:
+        imports = []
+        for child in tree_node.children:
+            if child.type in self.import_identifiers:
+                imports.append(child)
+            if child.children is not None:
+                imports += self.get_imports(child)
+        return imports
+
+    def get_calls_in_node(self, tree_node) -> list:
+        node_calls = []
+        for child in tree_node.children:
+            if child.type in self.call_identifiers:
+                node_calls.append(child)
+            if child.children is not None:
+                node_calls += self.get_calls_in_node(child)
+        return node_calls
+
+
+
+
+PythonSyntaxParser = CustomLanguageSyntaxParser(
+    name='python',
+    extension='py',
+    parser=get_parser('python'),
+    function_identifiers=['function_definition', 'function_item'],
+    import_identifiers=['import_statement', 'import_from_statement'],
+    call_identifiers=['call'],
+)
+
+JavascriptSyntaxParser = CustomLanguageSyntaxParser(
+    name='javascript',
+    extension='js',
+    parser=get_parser('javascript'),
+    function_identifiers=['function_definition', 'function_item'],
+    import_identifiers=['import_statement', 'import_from_statement'],
+    call_identifiers=['call'],
+)
+
+CSharpSyntaxParser = CustomLanguageSyntaxParser(
+    name='c-sharp',
+    extension='cs',
+    parser=get_parser('c_sharp'),
+    function_identifiers=['function_definition', 'function_item'],
+    import_identifiers=['import_statement', 'import_from_statement'],
+    call_identifiers=['call'],
+)
+
+JavaSyntaxParser = CustomLanguageSyntaxParser(
+    name='java',
+    extension='java',
+    parser=get_parser('java'),
+    function_identifiers=['function_definition', 'function_item'],
+    import_identifiers=['import_statement', 'import_from_statement'],
+    call_identifiers=['call'],
+)
+
+RustSyntaxParser = CustomLanguageSyntaxParser(
+    name='rust',
+    extension='rs',
+    parser=get_parser('rust'),
+    function_identifiers=['function_definition', 'function_item'],
+    import_identifiers=['import_statement', 'import_from_statement'],
+    call_identifiers=['call'],
+)
+
+
+# Top 20 programming languages and their extensions
+languages = {
+    'py' : PythonSyntaxParser,
+    'js' : JavascriptSyntaxParser,
+    'cs' : CSharpSyntaxParser,
+    'java' : JavaSyntaxParser,
+    'rs' : RustSyntaxParser,
+}
+
 
 
 class ParsedFile:
@@ -147,7 +214,7 @@ def function_to_call_graph(
     add_module_name = function_definition_names is not None and module_name is not None
     if add_module_name:
         function_name = module_name + '.' + function_name
-    full_graph.add_node(function_name, content=function.parent.text)
+    full_graph.add_node(function_name, content=function.text.decode('ascii'))
     for function_call in function_calls:
         function_call_name = function_call_to_text(function_call)
         if add_module_name:
@@ -211,9 +278,11 @@ def get_imported_modules(tree_node):
 
 def parse_file(filepath, file_bytes=None, module_name=None):
     # Get the language name from the file extension
-    language_name = languages[filepath.suffix[1:]]
+    custom_language_parser = languages[filepath.suffix[1:]]
+    parser = custom_language_parser.parser
+    language_name = custom_language_parser.name
     # Get the parser for the language
-    parser = get_parser(language_name)
+    # parser = get_parser(language_name)
     if file_bytes is None:
         file_bytes = bytes(open(filepath, 'r').read(), 'utf-8')
     # Parse the file
@@ -346,12 +415,30 @@ def get_network_from_gh_filelist(github_filelist):
 
     return nt_all, nt_files
 
+def get_filelist_from_gh_repo(repo, max_depth=3):
+    contents = repo.get_contents('')
+    cur_dir_depth = 0
+    next_dirs = []
+    filelist = []
+    
+    while len(contents) > 0 and cur_dir_depth < max_depth:
+        file_content = contents.pop(0)
+        if file_content.type == 'dir':
+            next_dirs.extend(repo.get_contents(file_content.path))
+        else:
+            filelist.append(file_content)
+        if len(contents) == 0:
+            cur_dir_depth += 1
+            contents = next_dirs
+            next_dirs = []
+    return filelist
+
 
 def main():
     # Get the graph for the file
-    file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
-        Path('..') / 'test_files' / 'repo-review'
-    )
+    # file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
+    #     Path('..') / 'test_files' / 'repo-review'
+    # )
     # graph = make_node_graph_for_file('main.py')
     # graph = make_node_graph_for_file('test_files/rs_test_0.rs')
     # graph = make_node_graph_for_file('../test_files/repo-review/main.py')
@@ -362,15 +449,20 @@ def main():
     #
     # nx.draw_networkx(full_function_call_graph)
     # plt.show()
-    nt_files = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
-    nt_files.from_nx(file_level_graph)
+    from github import Github
+    import os
 
-    nt_all = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
-    nt_all.from_nx(full_function_call_graph)
+    g = Github(os.getenv('access_token'))
 
-    nt_files.show('files.html')
+    repo = g.get_repo('Foxicution/repo-review')
+    filelist = get_filelist_from_gh_repo(repo)
+    logging.log(logging.DEBUG, f'Generating graph for {len(filelist)} files')
+    file_level_graph, full_function_call_graph = get_network_from_gh_filelist(filelist)
 
-    nt_all.show('all.html')
+
+    file_level_graph.show('files.html')
+
+    full_function_call_graph.show('all.html')
 
 
 if __name__ == '__main__':
