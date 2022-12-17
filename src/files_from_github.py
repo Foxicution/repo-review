@@ -3,7 +3,7 @@ from github.ContentFile import ContentFile
 from github.Repository import Repository
 from option import Result, Option
 from lambdas import _
-from streamlit import secrets, cache
+from streamlit import secrets
 from streamlit.runtime.secrets import Secrets
 from json import loads
 from toolz.functoolz import pipe
@@ -23,7 +23,6 @@ def get_repository(repository_link: str, hooks: Github = github_hooks()) -> Resu
 def unpack_repository(repository: Option[Result[Repository, GithubException]]) -> Option[Repository]:
     return repository.map(lambda result: result.unwrap())
 
-@cache(hash_funcs={Option: hash})
 def repository(repository_link: str) -> Option[Repository]:
     return pipe(
         repository_link,
