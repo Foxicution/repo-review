@@ -1,13 +1,12 @@
 # import pickle
+import logging
 from collections import defaultdict
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 import networkx as nx
 from pyvis.network import Network
 from tree_sitter_languages import get_parser
-import logging
-
 
 function_identifiers = ['function_definition', 'function_item']
 
@@ -47,8 +46,6 @@ class CustomLanguageSyntaxParser:
             if child.children is not None:
                 node_calls += self.get_calls_in_node(child)
         return node_calls
-
-
 
 
 PythonSyntaxParser = CustomLanguageSyntaxParser(
@@ -96,16 +93,14 @@ RustSyntaxParser = CustomLanguageSyntaxParser(
     call_identifiers=['call'],
 )
 
-
 # Top 20 programming languages and their extensions
 languages = {
-    'py' : PythonSyntaxParser,
-    'js' : JavascriptSyntaxParser,
-    'cs' : CSharpSyntaxParser,
-    'java' : JavaSyntaxParser,
-    'rs' : RustSyntaxParser,
+    'py': PythonSyntaxParser,
+    'js': JavascriptSyntaxParser,
+    'cs': CSharpSyntaxParser,
+    'java': JavaSyntaxParser,
+    'rs': RustSyntaxParser,
 }
-
 
 
 class ParsedFile:
@@ -415,12 +410,13 @@ def get_network_from_gh_filelist(github_filelist):
 
     return nt_all, nt_files
 
+
 def get_filelist_from_gh_repo(repo, max_depth=3):
     contents = repo.get_contents('')
     cur_dir_depth = 0
     next_dirs = []
     filelist = []
-    
+
     while len(contents) > 0 and cur_dir_depth < max_depth:
         file_content = contents.pop(0)
         if file_content.type == 'dir':
@@ -449,8 +445,9 @@ def main():
     #
     # nx.draw_networkx(full_function_call_graph)
     # plt.show()
-    from github import Github
     import os
+
+    from github import Github
 
     g = Github(os.getenv('access_token'))
 
@@ -458,7 +455,6 @@ def main():
     filelist = get_filelist_from_gh_repo(repo)
     logging.log(logging.DEBUG, f'Generating graph for {len(filelist)} files')
     file_level_graph, full_function_call_graph = get_network_from_gh_filelist(filelist)
-
 
     file_level_graph.show('files.html')
 
