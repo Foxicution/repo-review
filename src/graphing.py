@@ -195,9 +195,9 @@ def github_python_test():
     full_function_call_graph.show('python_all.html')
 
 
-def javascript_test():
+def local_test():
     file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
-        local_project_dir=Path('/home/mati/projects/atom')
+        local_project_dir=Path('/home/mati/projects/repo-review'), max_depth=5
     )
 
     nt_files = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
@@ -206,14 +206,14 @@ def javascript_test():
     nt_all = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
     nt_all.from_nx(full_function_call_graph)
 
-    nt_files.show('javascript_files.html')
+    nt_files.show('local_files.html')
 
-    nt_all.show('javascript_all.html')
+    nt_all.show('local_all.html')
 
 
 def main():
     # github_python_test()
-    javascript_test()
+    local_test()
 
 
 if __name__ == '__main__':

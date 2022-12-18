@@ -6,16 +6,16 @@ from tree_sitter_languages import get_language, get_parser
 
 class ImportedModule:
     def __init__(
-        self, module_base_name: str, module_name_as: str = None, imported_objects: list = None
+        self, module_base_name: str, alias: str = None, imported_objects: list = None
     ) -> None:
         self.module_base_name = module_base_name
-        self.module_name_as = module_name_as
+        self.alias = alias
         self.imported_objects = imported_objects
 
     @classmethod
     def from_tree_node(cls, tree_node):
         module_base_name = None
-        module_name_as = None
+        alias = None
         imported_objects = None
         if tree_node.type == 'import_from_statement':
             module_base_name = tree_node.named_children[0].text.decode('ascii')
@@ -29,13 +29,13 @@ class ImportedModule:
                     module_base_name = child.text.decode('ascii')
                 elif child.type == 'aliased_import':
                     module_base_name = child.named_children[0].text.decode('ascii')
-                    module_name_as = child.named_children[1].text.decode('ascii')
-        return cls(module_base_name, module_name_as, imported_objects)
+                    alias = child.named_children[1].text.decode('ascii')
+        return cls(module_base_name, alias, imported_objects)
 
     def __str__(self) -> str:
-        if self.module_name_as is None:
+        if self.alias is None:
             return self.module_base_name
-        return f'{self.module_base_name} as {self.module_name_as}'
+        return f'{self.module_base_name} as {self.alias}'
 
 
 def match_function_call_to_imported_module(function_call, imported_modules):
@@ -195,12 +195,23 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
     )
     call_identifiers: list[str] = field(default_factory=lambda: ['call_expression'])
 
-    def clean_node_js_import_text(self, import_text):
+    @staticmethod
+    def clean_node_js_import_text(import_text):
         import_text = import_text.replace('./', '')
         return import_text
 
     def get_imports(self, root_node) -> list:
         # TODO: Add support for typical js import statements
+        imports = self.get_node_imports(root_node)
+        imports += self.get_bare_js_imports(root_node)
+        return imports
+
+    def get_bare_js_imports(self, root_node) -> list:
+        imports = []
+        # TODO
+        return imports
+
+    def get_node_imports(self, root_node) -> list:
         imports = []
         # Let's keep this in case we need it later
         # node_imported_module_single = self.language.query(
@@ -209,6 +220,7 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
         #         (identifier) @import)
         #     """
         # )
+        # TODO: We might not need inner imports, but let's keep them for now
         node_imported_modules = self.language.query(
             """
             (object_pattern
@@ -271,16 +283,59 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
 
 @dataclass
 class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
-    def get_imported_modules(self, tree_node):
-        used_modules = []
-        for child in tree_node.children:
-            if child.type == 'import_statement':
-                used_modules.append(ImportedModule.from_tree_node(child))
-            if child.type == 'import_from_statement':
-                used_modules.append(ImportedModule.from_tree_node(child))
-            if child.children is not None:
-                used_modules += self.get_imported_modules(child)
-        return used_modules
+    def get_imports(self, tree_node):
+        imported_modules = {}
+        query_import = self.language.query(
+            """
+            (import_from_statement
+                (dotted_name) @import_from +
+                (dotted_name
+                    (identifier) @imported_from
+                )
+            )
+            (import_statement
+                (dotted_name) @import_base)
+            (import_statement
+                (aliased_import
+                    (dotted_name) @import_base
+                    (identifier) @import_alias
+                )
+            )
+            """
+        )
+        import_captures = query_import.captures(tree_node)
+        import_iter = iter(import_captures)
+        last_key = ''
+        while import_iter:
+            import_obj = next(import_iter, None)
+            if import_obj is None:
+                break
+            import_type = import_obj[1]
+            if import_type == 'import_from':
+                module_name = import_obj[0].text.decode('ascii')
+                imported_module = ImportedModule(
+                    module_base_name=module_name,
+                    imported_objects=[],
+                )
+                last_key = module_name
+                imported_modules[module_name] = imported_module
+
+            elif import_type == 'imported_from':
+                imported_object = import_obj[0].text.decode('ascii')
+                imported_modules[last_key].imported_objects.append(imported_object)
+            elif import_type == 'import_base':
+                module_name = import_obj[0].text.decode('ascii')
+                imported_module = ImportedModule(
+                    module_base_name=module_name,
+                    imported_objects=[],
+                )
+                last_key = module_name
+                imported_modules[module_name] = imported_module
+            elif import_type == 'import_alias':
+                alias_name = import_obj[0].text.decode('ascii')
+                imported_modules[last_key].alias = alias_name
+        imported_modules = list(imported_modules.values())
+        return imported_modules
 
 
 PythonSyntaxParser = CustomPythonSyntaxParser(
