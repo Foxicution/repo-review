@@ -21,6 +21,8 @@ lambdas = "^0.1.0"
 option = "^2.1.0"
 fastapi = {extras = ["all"], version = "^0.88.0"}
 jinja2 = "^3.1.2"
+tree-sitter-languages = "^1.5.0"
+tree-sitter = "^0.20.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -28,6 +30,7 @@ pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
 ipykernel = "^6.19.2"
 pre-commit = "^2.20.0"
+scalene = "^1.5.16"
 
 [build-system]
 requires = ["poetry-core"]
