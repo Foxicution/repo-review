@@ -377,7 +377,7 @@ RustSyntaxParser = CustomLanguageSyntaxParser(
     call_identifiers=['call'],
 )
 
-# Top 20 programming languages and their extensions
+# Top 5 programming languages and their extensions
 LANGUAGES = {
     'py': PythonSyntaxParser,
     'js': JavascriptSyntaxParser,
