@@ -55,78 +55,31 @@ class CustomLanguageSyntaxParser:
     extension: str = 'py'
     parser: object = get_parser('python')
     language: object = get_language('python')
-    function_identifiers: list[str] = field(default_factory=list)
-    import_identifiers: list[str] = field(default_factory=list)
-    call_identifiers: list[str] = field(default_factory=list)
 
     def get_function_definitions(self, tree_node) -> list:
-        functions = []
-        for child in tree_node.children:
-            if child.type in self.function_identifiers:
-                functions.append(child)
-            if child.children is not None:
-                functions += self.get_function_definitions(child)
-        return functions
+        raise NotImplementedError
 
     def get_imports(self, tree_node) -> list:
-        imports = []
-        return imports
+        raise NotImplementedError
 
     def get_calls_in_node(self, tree_node) -> list:
-        node_calls = []
-        for child in tree_node.children:
-            if child.type in self.call_identifiers:
-                node_calls.append(child)
-            if child.children is not None:
-                node_calls += self.get_calls_in_node(child)
-        return node_calls
+        raise NotImplementedError
 
     def build_node_call_map(self, tree_node) -> dict:
-        fun_def_query = self.language.query(
-            """
-            (function_definition
-              name: (identifier) @function.def)
+        raise NotImplementedError
 
-            """
-        )
-        fun_call_query = self.language.query(
-            """
-            (call
-            function: (identifier) @function.call)
-            """
-        )
-
-        fun_definitions = fun_def_query.captures(tree_node)
-        call_map = defaultdict(list)
-
-        for fun_definition in fun_definitions:
-            calls = fun_call_query.captures(fun_definition[0])
-            call_map[fun_definition[0].text.decode('ascii')] = [
-                call[0].text.decode('ascii') for call in calls
-            ]
-        return call_map
+    @staticmethod
+    def nodes_from_captures(captures):
+        return [capture[0] for capture in captures]
 
     def build_call_graph(
         self,
-        tree_node,
         cur_graph,
-        all_function_definitions=None,
+        function_definitions=None,
         module_name=None,
         imported_modules=None,
     ):
-        function_definitions = self.get_function_definitions(tree_node)
-        function_definition_names = [
-            self.get_fun_name(function_definition)
-            for function_definition in function_definitions
-        ]
-        for function_definition in function_definitions:
-            self.function_to_call_graph(
-                function_definition,
-                cur_graph,
-                function_definition_names,
-                module_name,
-                imported_modules,
-            )
+        raise NotImplementedError
 
     def function_to_call_graph(
         self,
@@ -136,7 +89,7 @@ class CustomLanguageSyntaxParser:
         module_name=None,
         imported_modules=None,
     ):
-        function_name = self.get_fun_name(function)
+        function_name = self.get_function_name_from_node(function)
         function_calls = self.get_calls_in_node(function)
         add_module_name = function_definition_names is not None and module_name is not None
         if add_module_name:
@@ -160,11 +113,12 @@ class CustomLanguageSyntaxParser:
             full_graph.add_node(function_call_name)
             full_graph.add_edge(function_name, function_call_name)
 
-    def get_fun_name(self, node):
-        name = [ch.text.decode('ascii') for ch in node.children if ch.type == 'identifier'][0]
-        return name
+    @staticmethod
+    def get_function_name_from_node(node):
+        raise NotImplementedError
 
-    def function_call_to_text(self, function_call):
+    @staticmethod
+    def function_call_to_text(function_call):
         function_call_text = ''
         for child in function_call.children:
             if child.type == 'attribute':
@@ -205,6 +159,11 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
         imports = self.get_node_imports(root_node)
         imports += self.get_bare_js_imports(root_node)
         return imports
+
+    @staticmethod
+    def get_function_name_from_node(node):
+        name = node.named_children[0].text.decode('ascii')
+        return name
 
     def get_bare_js_imports(self, root_node) -> list:
         imports = []
@@ -280,9 +239,44 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
                 call_map[module_name].append(function_name)
         return call_map
 
+    def get_function_definitions(self, tree_node) -> list:
+        query_function_definition = self.language.query(
+            """
+            (function_declaration) @function_definition
+            """
+        )
+        function_definitions = self.nodes_from_captures(
+            query_function_definition.captures(tree_node)
+        )
+        return function_definitions
+
+    def build_call_graph(
+        self,
+        cur_graph,
+        function_definitions=None,
+        module_name=None,
+        imported_modules=None,
+    ):
+        function_definition_names = [
+            self.get_function_name_from_node(function_definition)
+            for function_definition in function_definitions
+        ]
+        for function_definition in function_definitions:
+            self.function_to_call_graph(
+                function_definition,
+                cur_graph,
+                function_definition_names,
+                module_name,
+                imported_modules,
+            )
+
 
 @dataclass
 class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
+    def get_function_name_from_node(self, node):
+        name = node.named_children[0].text.decode('ascii')
+        return name
+
     def get_imports(self, tree_node):
         imported_modules = {}
         query_import = self.language.query(
@@ -337,15 +331,77 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
         imported_modules = list(imported_modules.values())
         return imported_modules
 
+    def get_function_definitions(self, tree_node) -> list:
+        query_function_definition = self.language.query(
+            """
+            (function_definition) @function_definition
+            """
+        )
+        function_definitions = self.nodes_from_captures(
+            query_function_definition.captures(tree_node)
+        )
+        return function_definitions
+
+    def get_calls_in_node(self, tree_node) -> list:
+        query_call = self.language.query(
+            """
+            (call) @call
+            """
+        )
+        node_calls = self.nodes_from_captures(query_call.captures(tree_node))
+        return node_calls
+
+    def build_node_call_map(self, tree_node) -> dict:
+        fun_def_query = self.language.query(
+            """
+            (function_definition
+              name: (identifier) @function.def)
+
+            """
+        )
+        fun_call_query = self.language.query(
+            """
+            (call
+            function: (identifier) @function.call)
+            """
+        )
+
+        fun_definitions = fun_def_query.captures(tree_node)
+        call_map = defaultdict(list)
+
+        for fun_definition in fun_definitions:
+            calls = fun_call_query.captures(fun_definition[0])
+            call_map[fun_definition[0].text.decode('ascii')] = [
+                call[0].text.decode('ascii') for call in calls
+            ]
+        return call_map
+
+    def build_call_graph(
+        self,
+        cur_graph,
+        function_definitions=None,
+        module_name=None,
+        imported_modules=None,
+    ):
+        function_definition_names = [
+            self.get_function_name_from_node(function_definition)
+            for function_definition in function_definitions
+        ]
+        for function_definition in function_definitions:
+            self.function_to_call_graph(
+                function_definition,
+                cur_graph,
+                function_definition_names,
+                module_name,
+                imported_modules,
+            )
+
 
 PythonSyntaxParser = CustomPythonSyntaxParser(
     name='python',
     extension='py',
     parser=get_parser('python'),
     language=get_language('python'),
-    function_identifiers=['function_definition', 'function_item'],
-    import_identifiers=['import_statement', 'import_from_statement'],
-    call_identifiers=['call'],
 )
 
 JavascriptSyntaxParser = CustomJavascriptSyntaxParser()
@@ -354,30 +410,21 @@ CSharpSyntaxParser = CustomLanguageSyntaxParser(
     name='c-sharp',
     extension='cs',
     parser=get_parser('c_sharp'),
-    function_identifiers=['function_definition', 'function_item'],
-    import_identifiers=['import_statement', 'import_from_statement'],
-    call_identifiers=['call'],
 )
 
 JavaSyntaxParser = CustomLanguageSyntaxParser(
     name='java',
     extension='java',
     parser=get_parser('java'),
-    function_identifiers=['function_definition', 'function_item'],
-    import_identifiers=['import_statement', 'import_from_statement'],
-    call_identifiers=['call'],
 )
 
 RustSyntaxParser = CustomLanguageSyntaxParser(
     name='rust',
     extension='rs',
     parser=get_parser('rust'),
-    function_identifiers=['function_definition', 'function_item'],
-    import_identifiers=['import_statement', 'import_from_statement'],
-    call_identifiers=['call'],
 )
 
-# Top 20 programming languages and their extensions
+# Top 5 programming languages and their extensions
 LANGUAGES = {
     'py': PythonSyntaxParser,
     'js': JavascriptSyntaxParser,
