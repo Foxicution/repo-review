@@ -1,5 +1,6 @@
 # import pickle
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 
 import networkx as nx
@@ -8,27 +9,16 @@ from pyvis.network import Network
 from custom_language_parsers import LANGUAGES
 
 
+@dataclass
 class ParsedFile:
-    def __init__(
-        self,
-        filepath: Path,
-        language_name: str,
-        imported_modules: list,
-        function_definitions: list,
-        function_calls: list,
-        module_call_map: dict,
-        local_call_graph: nx.DiGraph,
-        project_connections: list = None,
-    ) -> None:
-        self.filepath = filepath
-        self.language_name = language_name
-        self.imported_modules = imported_modules
-        self.function_definitions = function_definitions
-        self.function_calls = function_calls
-        self.node_call_map = module_call_map
-        self.local_call_graph = local_call_graph
-        self.project_connections = project_connections  # on file level
-        # TODO: Make it on function call level too
+    filepath: Path
+    language_name: str
+    imported_modules: list
+    function_definitions: list
+    function_calls: list
+    module_call_map: dict
+    local_call_graph: nx.DiGraph
+    project_connections: list = None  # on file level
 
 
 def parse_file(filepath, file_bytes=None, module_name=None):
