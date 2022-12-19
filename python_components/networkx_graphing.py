@@ -1,8 +1,11 @@
-import networkx as nx
 from copy import deepcopy
 
+import networkx as nx
 
-def fix_edges(graph_nodes: list[dict]) -> tuple[list[dict], tuple[str, str, float], list[str]]:
+
+def fix_edges(
+    graph_nodes: list[dict],
+) -> tuple[list[dict], tuple[str, str, float], list[str]]:
     edge_weight = 5.0
     file_names = [n['id'] for n in graph_nodes]
     graph_edges = []

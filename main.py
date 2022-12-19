@@ -1,21 +1,22 @@
-import os
-import streamlit as st
-from src.streamlit_components.graph_visualizer import my_component
-from networkx import Graph
-from pyvis.network import Network
-from github import Github, Repository
-from typing import Optional, Callable, Any, Pattern, AnyStr
-from functools import wraps
-import re
-from toolz.functoolz import pipe
-from python_components.old_types import T, Package
-from python_components.networkx_graphing import get_graphs, without_keys
-import pickle
 import json
-from python_components.large_lang_model import ai_magic
+import os
+import pickle
+import re
+from functools import wraps
+from typing import Any, AnyStr, Callable, Optional, Pattern
+
+import streamlit as st
+from github import Github, Repository
 from google.cloud import firestore
 from google.oauth2 import service_account
+from networkx import Graph
+from pyvis.network import Network
+from toolz.functoolz import pipe
+
 from python_components.large_lang_model import ai_magic
+from python_components.networkx_graphing import get_graphs
+from python_components.old_types import Package, T
+from src.streamlit_components.graph_visualizer import my_component
 
 st.set_page_config(layout='wide')
 if 'init' not in st.session_state:
@@ -47,7 +48,9 @@ def remove_single_quote_strings(code: str) -> str:
 
 
 def clean_code(code: str) -> str:
-    return pipe(code, remove_comments, remove_docs, remove_strings, remove_single_quote_strings)
+    return pipe(
+        code, remove_comments, remove_docs, remove_strings, remove_single_quote_strings
+    )
 
 
 # TODO: rewrite this function into more functional style
@@ -69,7 +72,9 @@ def append_pak(from_pak: str, to_pak: str, edges: list[(str, str)]) -> tuple[str
     return edges.append((from_pak.strip(), to_pak.strip()))
 
 
-def try_decorator(error_msg: str) -> Callable[[Callable[[Any], T]], Callable[[Any], Optional[T]]]:
+def try_decorator(
+    error_msg: str,
+) -> Callable[[Callable[[Any], T]], Callable[[Any], Optional[T]]]:
     def decorator(f: Callable[[Any], T]) -> Callable[[Any], Optional[T]]:
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -103,7 +108,7 @@ def vis_parameters(nx_graph: Graph) -> tuple[str, str]:
 
 
 def import_line_to_packages(import_line: str) -> Package:
-    clean_line = re.sub('as\s+\S+', '', import_line).replace('.', '/')
+    clean_line = re.sub(r'as\s+\S+', '', import_line).replace('.', '/')
     for symbol in ['\n', '(', ')', ',', 'import']:
         clean_line = clean_line.replace(symbol, '')
     packages = clean_line.split()
@@ -135,7 +140,7 @@ def file_package_imports(import_lines: list[str], file_name: str) -> list[str]:
 
 
 def hex_to_rgb(h: str) -> tuple[int, int, int]:
-    return tuple(int(h.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4))
+    return tuple(int(h.lstrip('#')[i : i + 2], 16) for i in (0, 2, 4))
 
 
 def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
@@ -144,7 +149,11 @@ def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
 
 def score_to_colour(score: float) -> str:
     green, red = hex_to_rgb('#7fe7dc'), hex_to_rgb('#f47a60')
-    return pipe(map(lambda start, end: int(start + (end - start) / 9 * (score - 1)), red, green), tuple, rgb_to_hex)
+    return pipe(
+        map(lambda start, end: int(start + (end - start) / 9 * (score - 1)), red, green),
+        tuple,
+        rgb_to_hex,
+    )
 
 
 @st.cache
@@ -164,24 +173,30 @@ def extract_data_from_repo(repo_link: str) -> list[dict]:
                 ###################################################
                 code = clean_code(file_content)
                 from_with_braces = re.compile(r'from\s+(.+\s+import\s+\((?:.|\n)+?\))')
-                from_with_braces, new_code = extract_and_remove_pattern(from_with_braces, code)
+                from_with_braces, new_code = extract_and_remove_pattern(
+                    from_with_braces, code
+                )
                 from_import = re.compile(r'from\s+(.+)')
                 from_import, new_code = extract_and_remove_pattern(from_import, new_code)
                 import_pattern = re.compile(r'import\s+(.+)')
-                import_pattern, new_code = extract_and_remove_pattern(import_pattern, new_code)
+                import_pattern, new_code = extract_and_remove_pattern(
+                    import_pattern, new_code
+                )
                 packages = file_package_imports(from_with_braces, file_path)
                 packages += file_package_imports(from_import, file_path)
                 packages += file_package_imports(import_pattern, file_path)
 
                 ####################################################
                 file_name = file_path.split('/')[-1]
-                node_info = {'id': file_path,
-                             'label': file_name,
-                             'title': file_name,
-                             'code': file_content,
-                             'size': 20,
-                             'imports': packages,
-                             'type': 'internal'}
+                node_info = {
+                    'id': file_path,
+                    'label': file_name,
+                    'title': file_name,
+                    'code': file_content,
+                    'size': 20,
+                    'imports': packages,
+                    'type': 'internal',
+                }
                 average_score = 0
                 for key, prompt in prompts.items():
                     try:
@@ -189,13 +204,19 @@ def extract_data_from_repo(repo_link: str) -> list[dict]:
                         encoded_fin = fin.encode('utf-8')
                         save_prompt(encoded_fin, exceed_len)
                         score = int(re.findall(r'\d+', out_2)[0])
-                        node_info[key] = {'response': f'1:{remove_empty_lines(out_1)}', 'score': score}
+                        node_info[key] = {
+                            'response': f'1:{remove_empty_lines(out_1)}',
+                            'score': score,
+                        }
                         average_score += score
                         node_info['title'] = node_info['title'] + f'\n{key}: {score}'
                     except Exception:
                         print("API error")
                         score = 5
-                        node_info[key] = {'response': f'Error in the API response', 'score': score}
+                        node_info[key] = {
+                            'response': 'Error in the API response',
+                            'score': score,
+                        }
                         average_score += score
                         node_info['title'] = node_info['title'] + f'\n{key}: {score}'
                 average_score = average_score / 4
@@ -203,7 +224,10 @@ def extract_data_from_repo(repo_link: str) -> list[dict]:
                 node_info['score'] = average_score
 
                 nodes.append(node_info)
-    with open(f"analyzed_repos/{repo_link.removeprefix('https://github.com/').replace('/', '_o_')}", 'wb') as f:
+    with open(
+        f"analyzed_repos/{repo_link.removeprefix('https://github.com/').replace('/', '_o_')}",
+        'wb',
+    ) as f:
         pickle.dump(nodes, f)
     return nodes
 
@@ -224,9 +248,11 @@ def read_pickle(file_path):
 def setup(secrets: dict) -> tuple[firestore.Client, dict, Github]:
     key_dict = json.loads(secrets["db_key"])
     credentials = service_account.Credentials.from_service_account_info(key_dict)
-    return (firestore.Client(credentials=credentials),
-           json.loads(secrets["prompts"]),
-           authenticate_github(json.loads(secrets['github_token'])['secondary']))
+    return (
+        firestore.Client(credentials=credentials),
+        json.loads(secrets["prompts"]),
+        authenticate_github(json.loads(secrets['github_token'])['secondary']),
+    )
 
 
 database, prompts, g = setup(st.secrets)
@@ -267,10 +293,16 @@ def dev_main():
     dir_to_repos = 'analyzed_repos/'
     analysed_repo_data = {}
     for repo_link in os.listdir(dir_to_repos):
-        analysed_repo_data[repo_link.replace('_o_', '/')] = read_pickle(dir_to_repos + repo_link)
+        analysed_repo_data[repo_link.replace('_o_', '/')] = read_pickle(
+            dir_to_repos + repo_link
+        )
     with temp.container():
-        repo_link = st.text_input('Input a github repo url (Hint: only open-source repos are supported for now)')
-        analysed_repo = st.selectbox('Or choose an already analyzed one', analysed_repo_data.keys())
+        repo_link = st.text_input(
+            'Input a github repo url (Hint: only open-source repos are supported for now)'
+        )
+        analysed_repo = st.selectbox(
+            'Or choose an already analyzed one', analysed_repo_data.keys()
+        )
         button = st.button('Submit')
     if button:
         st.session_state['init'] = False
@@ -287,9 +319,13 @@ def prod_main():
     dir_to_repos = 'analyzed_repos/'
     analysed_repo_data = {}
     for repo_link in os.listdir(dir_to_repos):
-        analysed_repo_data[repo_link.replace('_o_', '/')] = read_pickle(dir_to_repos + repo_link)
+        analysed_repo_data[repo_link.replace('_o_', '/')] = read_pickle(
+            dir_to_repos + repo_link
+        )
     with temp.container():
-        analysed_repo = st.selectbox('Or choose an already analyzed one', analysed_repo_data.keys())
+        analysed_repo = st.selectbox(
+            'Or choose an already analyzed one', analysed_repo_data.keys()
+        )
         button = st.button('Submit')
     if button:
         st.session_state['init'] = False

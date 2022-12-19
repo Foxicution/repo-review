@@ -39,7 +39,7 @@ class StreamlitVisGraph extends StreamlitComponentBase<State> {
     options: {...JSON.parse(this.props.args["options"]), ...options},
     width: this.props.width
   }
-  
+
   render = () => {
     return (
       <Graph
