@@ -1,18 +1,24 @@
+from json import loads
+
 import openai
 from streamlit import secrets
-from json import loads
+
 from generics import try_decorator
 
-#TODO: Replace streamlit secrets with a method that works with FastAPI
+# TODO: Replace streamlit secrets with a method that works with FastAPI
 openai.api_key = loads(secrets["openai_key"])['api_key']
+
 
 @try_decorator
 def get_completion(prompt: str) -> openai.Completion:
-    return openai.Completion.create(model="text-davinci-002", prompt=prompt, max_tokens=700, temperature=0.1, top_p=1)
+    return openai.Completion.create(
+        model="text-davinci-002", prompt=prompt, max_tokens=700, temperature=0.1, top_p=1
+    )
+
 
 def main():
     prompt = """The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.
-    
+
     Human: Hello, who are you?
     AI: I am an AI created by OpenAI. How can I help you today?
     Human: I'd like to cancel my subscription.
@@ -34,6 +40,7 @@ def main():
     Human: You too.
     AI:"""
     print(get_completion(prompt))
+
 
 if __name__ == '__main__':
     main()

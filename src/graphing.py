@@ -1,5 +1,6 @@
 # import pickle
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 
 import networkx as nx
@@ -8,27 +9,16 @@ from pyvis.network import Network
 from custom_language_parsers import LANGUAGES
 
 
+@dataclass
 class ParsedFile:
-    def __init__(
-        self,
-        filepath: Path,
-        language_name: str,
-        imported_modules: list,
-        function_definitions: list,
-        function_calls: list,
-        module_call_map: dict,
-        local_call_graph: nx.DiGraph,
-        project_connections: list = None,
-    ) -> None:
-        self.filepath = filepath
-        self.language_name = language_name
-        self.imported_modules = imported_modules
-        self.function_definitions = function_definitions
-        self.function_calls = function_calls
-        self.node_call_map = module_call_map
-        self.local_call_graph = local_call_graph
-        self.project_connections = project_connections  # on file level
-        # TODO: Make it on function call level too
+    filepath: Path
+    language_name: str
+    imported_modules: list
+    function_definitions: list
+    function_calls: list
+    module_call_map: dict
+    local_call_graph: nx.DiGraph
+    project_connections: list = None  # on file level
 
 
 def parse_file(filepath, file_bytes=None, module_name=None):
@@ -46,14 +36,11 @@ def parse_file(filepath, file_bytes=None, module_name=None):
     function_calls = custom_language_parser.get_calls_in_node(tree.root_node)
     imported_modules = custom_language_parser.get_imports(tree.root_node)
     custom_language_parser.build_call_graph(
-        tree.root_node,
         local_call_graph,
         function_definitions,
         module_name,
         imported_modules,
     )
-
-    # renamed_call_graph = rename_call_graph_nodes(local_call_graph, filepath.stem)
 
     parsed_file = ParsedFile(
         filepath=filepath,
@@ -101,45 +88,52 @@ def build_file_level_graph(parsed_files):
     return file_level_graph, full_function_call_graph
 
 
-def make_node_call_graph_for_project(
-    local_project_dir=None, github_filelist=None, max_depth=3
-):
+def get_module_name_from_filepath(filepath, project_depth):
+    module_name = '.'.join(filepath.parts[project_depth:]).replace(filepath.suffix, '')
+    return module_name
+
+
+def build_graphs_for_project(local_project_dir=None, github_filelist=None, max_depth=3):
     parsed_files = {}
-    using_github = False
     using_local = False
+    assert (
+        local_project_dir is not None or github_filelist is not None
+    ), 'Must provide either local or github source'
+
     if local_project_dir is not None:
         filepaths = local_project_dir.glob('**/*')
         project_depth = len(local_project_dir.parts)
         using_local = True
-    elif github_filelist is not None:
+    else:
         filepaths = github_filelist
         project_depth = 1
-        using_github = True
-    else:
-        Exception('Must provide either a local project directory or a github filelist')
 
     for filepath_pre in filepaths:
         if using_local:
             filepath = filepath_pre
-        elif using_github:
+        else:
             filepath = Path(filepath_pre.path)
 
         if filepath.is_dir():
             continue
-        depth = len(filepath.parts)
-        if depth - project_depth > max_depth:
+
+        if filepath.suffix[1:] not in LANGUAGES:
             continue
-        if filepath.suffix[1:] in LANGUAGES:
-            module_name = '.'.join(filepath.parts[project_depth:]).replace(
-                filepath.suffix, ''
-            )
-            if using_local:
-                parsed_file = parse_file(filepath, file_bytes=None, module_name=module_name)
-            elif using_github:
-                parsed_file = parse_file(
-                    filepath, file_bytes=filepath_pre.decoded_content, module_name=module_name
-                )
-            parsed_files['/'.join(filepath.parts[project_depth:])] = parsed_file
+
+        current_depth = len(filepath.parts) - project_depth
+        if current_depth > max_depth:
+            continue
+
+        file_contents = None
+        if not using_local:
+            file_contents = filepath_pre.decoded_content
+
+        module_name = get_module_name_from_filepath(filepath, project_depth)
+        parsed_file = parse_file(filepath, file_bytes=file_contents, module_name=module_name)
+        if parsed_file is None:
+            continue
+
+        parsed_files['/'.join(filepath.parts[project_depth:])] = parsed_file
 
     file_level_graph, full_function_call_graph = build_file_level_graph(parsed_files)
 
@@ -147,7 +141,7 @@ def make_node_call_graph_for_project(
 
 
 def get_network_from_gh_filelist(github_filelist):
-    file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
+    file_level_graph, full_function_call_graph = build_graphs_for_project(
         github_filelist=github_filelist
     )
     nt_files = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
@@ -159,22 +153,23 @@ def get_network_from_gh_filelist(github_filelist):
     return nt_all, nt_files
 
 
-def get_filelist_from_gh_repo(repo, max_depth=3):
-    contents = repo.get_contents('')
-    cur_dir_depth = 0
-    next_dirs = []
+def get_filelist_from_gh_repo(repo, max_depth=4):
+    repo_contents = repo.get_contents('')
+    current_directory_depth = 0
+    next_depth_dirs = []
     filelist = []
 
-    while len(contents) > 0 and cur_dir_depth < max_depth:
-        file_content = contents.pop(0)
+    while len(repo_contents) > 0 and current_directory_depth < max_depth:
+        file_content = repo_contents.pop(0)
         if file_content.type == 'dir':
-            next_dirs.extend(repo.get_contents(file_content.path))
+            next_depth_dirs.extend(repo.get_contents(file_content.path))
         else:
             filelist.append(file_content)
-        if len(contents) == 0:
-            cur_dir_depth += 1
-            contents = next_dirs
-            next_dirs = []
+        # If reached current depth end
+        if len(repo_contents) == 0:
+            current_directory_depth += 1
+            repo_contents = next_depth_dirs
+            next_depth_dirs = []
     return filelist
 
 
@@ -196,8 +191,8 @@ def github_python_test():
 
 
 def local_test():
-    file_level_graph, full_function_call_graph = make_node_call_graph_for_project(
-        local_project_dir=Path('/home/mati/projects/repo-review'), max_depth=5
+    file_level_graph, full_function_call_graph = build_graphs_for_project(
+        local_project_dir=Path('/home/mati/projects/repo-review'), max_depth=3
     )
 
     nt_files = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
