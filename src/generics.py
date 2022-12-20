@@ -2,7 +2,7 @@ from typing import Callable, TypeVar
 
 from option import NONE, Err, Ok, Option, Result, Some
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def try_decorator(function: Callable[..., T]) -> Callable[..., Result[T, Exception]]:

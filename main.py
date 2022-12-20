@@ -27,7 +27,9 @@ def replace_semicolons_with_new_line(code: str) -> str:
     return code.replace(';', '\n')
 
 
-def extract_and_remove_pattern(pattern: Pattern[AnyStr], code: str) -> tuple[list[str], str]:
+def extract_and_remove_pattern(
+    pattern: Pattern[AnyStr], code: str
+) -> tuple[list[str], str]:
     return pattern.findall(code), pattern.sub('\n', code)
 
 
@@ -49,7 +51,11 @@ def remove_single_quote_strings(code: str) -> str:
 
 def clean_code(code: str) -> str:
     return pipe(
-        code, remove_comments, remove_docs, remove_strings, remove_single_quote_strings
+        code,
+        remove_comments,
+        remove_docs,
+        remove_strings,
+        remove_single_quote_strings,
     )
 
 
@@ -89,7 +95,9 @@ def try_decorator(
     return decorator
 
 
-@try_decorator('Error authenticating with github. Press F5 to reload the page and try again.')
+@try_decorator(
+    'Error authenticating with github. Press F5 to reload the page and try again.'
+)
 def authenticate_github(token: str) -> Github:
     return Github(token)
 
@@ -117,7 +125,10 @@ def import_line_to_packages(import_line: str) -> Package:
 
 def add_packages_to_root(package: Package) -> list[str]:
     if package.packages:
-        return [f'{package.root}/{imported_package}' for imported_package in package.packages]
+        return [
+            f'{package.root}/{imported_package}'
+            for imported_package in package.packages
+        ]
     else:
         return [f'{package.root}']
 
@@ -150,7 +161,11 @@ def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
 def score_to_colour(score: float) -> str:
     green, red = hex_to_rgb('#7fe7dc'), hex_to_rgb('#f47a60')
     return pipe(
-        map(lambda start, end: int(start + (end - start) / 9 * (score - 1)), red, green),
+        map(
+            lambda start, end: int(start + (end - start) / 9 * (score - 1)),
+            red,
+            green,
+        ),
         tuple,
         rgb_to_hex,
     )
@@ -177,7 +192,9 @@ def extract_data_from_repo(repo_link: str) -> list[dict]:
                     from_with_braces, code
                 )
                 from_import = re.compile(r'from\s+(.+)')
-                from_import, new_code = extract_and_remove_pattern(from_import, new_code)
+                from_import, new_code = extract_and_remove_pattern(
+                    from_import, new_code
+                )
                 import_pattern = re.compile(r'import\s+(.+)')
                 import_pattern, new_code = extract_and_remove_pattern(
                     import_pattern, new_code
@@ -237,7 +254,9 @@ def remove_empty_lines(text: str) -> str:
 
 
 def save_prompt(fin: bytes, exceed_len: int):
-    database.collection('ai_responses').add({'response': fin, 'exceeded_lenght': exceed_len})
+    database.collection('ai_responses').add(
+        {'response': fin, 'exceeded_lenght': exceed_len}
+    )
 
 
 def read_pickle(file_path):
