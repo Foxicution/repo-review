@@ -73,12 +73,13 @@ class CustomLanguageSyntaxParser:
         function_definition_names=None,
         module_name=None,
         imported_modules=None,
-    ):
+    ) -> None:
         function_name = self.get_function_name_from_node(function)
         function_calls = self.get_calls_in_node(function)
 
         function_name = module_name + '.' + function_name
         full_graph.add_node(function_name, content=function.text.decode('ascii'))
+
         for function_call in function_calls:
             function_call_name = self.function_call_to_text(function_call)
             if function_call_name in function_definition_names:
@@ -91,6 +92,7 @@ class CustomLanguageSyntaxParser:
                     function_call_name = (
                         matching_imported_module.module_base_name + '.' + function_call_name
                     )
+
             full_graph.add_node(function_call_name)
             full_graph.add_edge(function_name, function_call_name)
 
