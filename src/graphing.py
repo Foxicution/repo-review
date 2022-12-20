@@ -192,7 +192,7 @@ def github_python_test():
 
 def local_test():
     file_level_graph, full_function_call_graph = build_graphs_for_project(
-        local_project_dir=Path('/home/mati/projects/repo-review'), max_depth=5
+        local_project_dir=Path('/home/mati/projects/repo-review'), max_depth=3
     )
 
     nt_files = Network(directed=True, bgcolor='#f2f3f4', height=1080, width=1080)
