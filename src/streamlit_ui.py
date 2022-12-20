@@ -5,7 +5,12 @@ from graphing import get_network_from_gh_filelist
 
 
 def main():
-    pipe("https://github.com/Foxicution/trello-weekday-list-automation", file_list, get_network_from_gh_filelist, print)
+    pipe(
+        "https://github.com/Foxicution/trello-weekday-list-automation",
+        file_list,
+        get_network_from_gh_filelist,
+        print,
+    )
 
 
 if __name__ == '__main__':

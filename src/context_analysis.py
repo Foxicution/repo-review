@@ -11,7 +11,9 @@ openai.api_key = loads(secrets["openai_key"])['api_key']
 
 @try_decorator
 def get_completion(prompt: str) -> openai.Completion:
-    return openai.Completion.create(model="text-davinci-002", prompt=prompt, max_tokens=700, temperature=0.1, top_p=1)
+    return openai.Completion.create(
+        model="text-davinci-002", prompt=prompt, max_tokens=700, temperature=0.1, top_p=1
+    )
 
 
 def main():
