@@ -84,12 +84,12 @@ class CustomLanguageSyntaxParser:
             if function_call_name in function_definition_names:
                 function_call_name = module_name + '.' + function_call_name
             elif imported_modules is not None:
-                matches_imported_module = get_imported_module_for_function_call(
+                matching_imported_module = get_imported_module_for_function_call(
                     function_call_name, imported_modules
                 )
-                if matches_imported_module is not None:
+                if matching_imported_module is not None:
                     function_call_name = (
-                        matches_imported_module.module_base_name + '.' + function_call_name
+                        matching_imported_module.module_base_name + '.' + function_call_name
                     )
             full_graph.add_node(function_call_name)
             full_graph.add_edge(function_name, function_call_name)
@@ -245,8 +245,9 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
         name = node.named_children[0].text.decode('ascii')
         return name
 
-    def get_imports(self, tree_node):
+    def get_imports(self, tree_node) -> list[ImportedModule]:
         imported_modules = {}
+        # TODO: Fix query to only match import_from once, remove dict fix
         query_import = self.language.query(
             """
             (import_from_statement
@@ -268,34 +269,22 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
         import_captures = query_import.captures(tree_node)
         import_iter = iter(import_captures)
         last_key = ''
-        while import_iter:
-            import_obj = next(import_iter, None)
-            if import_obj is None:
-                break
+        for import_obj in import_iter:
             import_type = import_obj[1]
-            if import_type == 'import_from':
-                module_name = import_obj[0].text.decode('ascii')
-                imported_module = ImportedModule(
-                    module_base_name=module_name,
-                    imported_objects=[],
-                )
-                last_key = module_name
-                imported_modules[module_name] = imported_module
+            obj_name = import_obj[0].text.decode('ascii')
+            match import_type:
+                case 'import_from' | 'import_base':
+                    imported_module = ImportedModule(
+                        module_base_name=obj_name,
+                        imported_objects=[],
+                    )
+                    last_key = obj_name
+                    imported_modules[obj_name] = imported_module
+                case 'imported_from':
+                    imported_modules[last_key].imported_objects.append(obj_name)
+                case 'import_alias':
+                    imported_modules[last_key].alias = obj_name
 
-            elif import_type == 'imported_from':
-                imported_object = import_obj[0].text.decode('ascii')
-                imported_modules[last_key].imported_objects.append(imported_object)
-            elif import_type == 'import_base':
-                module_name = import_obj[0].text.decode('ascii')
-                imported_module = ImportedModule(
-                    module_base_name=module_name,
-                    imported_objects=[],
-                )
-                last_key = module_name
-                imported_modules[module_name] = imported_module
-            elif import_type == 'import_alias':
-                alias_name = import_obj[0].text.decode('ascii')
-                imported_modules[last_key].alias = alias_name
         imported_modules = list(imported_modules.values())
         return imported_modules
 
