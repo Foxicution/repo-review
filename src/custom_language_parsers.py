@@ -68,12 +68,13 @@ class CustomLanguageSyntaxParser:
 
     def add_function_to_call_graph(
         self,
-        function,
-        full_graph,
-        function_definition_names=None,
-        module_name=None,
-        imported_modules=None,
+        function: object,
+        full_graph: object,
+        module_name: str,
+        function_definition_names: Optional[list] = None,
+        imported_modules: Optional[list] = None,
     ) -> None:
+
         function_name = self.get_function_name_from_node(function)
         function_calls = self.get_calls_in_node(function)
 
@@ -233,11 +234,11 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
         ]
         for function_definition in function_definitions:
             self.add_function_to_call_graph(
-                function_definition,
-                cur_graph,
-                function_definition_names,
-                module_name,
-                imported_modules,
+                function=function_definition,
+                full_graph=cur_graph,
+                module_name=module_name,
+                function_definition_names=function_definition_names,
+                imported_modules=imported_modules,
             )
 
 
@@ -348,11 +349,11 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
         ]
         for function_definition in function_definitions:
             self.add_function_to_call_graph(
-                function_definition,
-                cur_graph,
-                function_definition_names,
-                module_name,
-                imported_modules,
+                function=function_definition,
+                full_graph=cur_graph,
+                module_name=module_name,
+                function_definition_names=function_definition_names,
+                imported_modules=imported_modules,
             )
 
 
