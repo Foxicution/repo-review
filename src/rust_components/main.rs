@@ -1,4 +1,4 @@
-use git2::{Repository, Tree, Commit, };
+use git2::{Repository, Tree, Commit};
 use std::fs;
 use std::path::Path;
 use std::str::FromStr;
