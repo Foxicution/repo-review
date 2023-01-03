@@ -1,0 +1,595 @@
+{
+    "alloc_samples": 91,
+    "elapsed_time_sec": 12.664023876190186,
+    "files": {
+        "/home/fox/Projects/Python/repo-review/src/custom_language_parsers.py": {
+            "functions": [
+                {
+                    "line": "CustomPythonSyntaxParser.get_imports",
+                    "lineno": 280,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 1.771645510195406,
+                    "n_cpu_percent_c": 0.04005953249249855,
+                    "n_cpu_percent_python": 0.4441145542062009,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.09017311845449176,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "CustomPythonSyntaxParser.get_function_definitions",
+                    "lineno": 334,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.008463887271820425,
+                    "n_cpu_percent_python": 0.2465989784192252,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.05631367456386557,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "CustomPythonSyntaxParser.get_calls_in_node",
+                    "lineno": 345,
+                    "memory_samples": [
+                        [
+                            5417510162,
+                            61.39219122038836
+                        ]
+                    ],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.38362019253958346,
+                    "n_cpu_percent_c": 0.2254950072132698,
+                    "n_cpu_percent_python": 3.837233546348279,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.08082401789893966,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "CustomPythonSyntaxParser.build_node_call_map",
+                    "lineno": 354,
+                    "memory_samples": [
+                        [
+                            3813833941,
+                            62.68251834760572
+                        ]
+                    ],
+                    "n_avg_mb": 1.9002559185028076,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.002459776547592051,
+                    "n_cpu_percent_python": 0.3853296822451455,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 2.2553443908691406,
+                    "n_malloc_mb": 7.6010236740112305,
+                    "n_mallocs": 4,
+                    "n_peak_mb": 2.2553443908691406,
+                    "n_python_fraction": 0.1889096459602088,
+                    "n_sys_percent": 0.4453662150118659,
+                    "n_usage_fraction": 0.10282622459886812
+                }
+            ],
+            "leaks": {},
+            "lines": [
+                {
+                    "line": "        query_import = self.language.query(\n",
+                    "lineno": 282,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 1.771645510195406,
+                    "n_cpu_percent_c": 0.03570533838945306,
+                    "n_cpu_percent_python": 0.3688535626438475,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.09071901607129221,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "        import_captures = query_import.captures(tree_node)\n",
+                    "lineno": 300,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.003808296486245023,
+                    "n_cpu_percent_python": 0.0752609915623534,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.0,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "        query_function_definition = self.language.query(\n",
+                    "lineno": 335,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.008732735447230633,
+                    "n_cpu_percent_python": 0.19082398881264184,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.03655882443268534,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "            query_function_definition.captures(tree_node)\n",
+                    "lineno": 341,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.05577498960658336,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.019486001955770042,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "        query_call = self.language.query(\n",
+                    "lineno": 346,
+                    "memory_samples": [
+                        [
+                            5417510162,
+                            61.38402740840592
+                        ]
+                    ],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.38362019253958346,
+                    "n_cpu_percent_c": 0.2254950072132698,
+                    "n_cpu_percent_python": 3.837233546348279,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.08082401789893966,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "        fun_def_query = self.language.query(\n",
+                    "lineno": 355,
+                    "memory_samples": [
+                        [
+                            3813833941,
+                            62.67808567189771
+                        ]
+                    ],
+                    "n_avg_mb": 1.9002559185028076,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.04522136890773943,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 2.2553443908691406,
+                    "n_malloc_mb": 7.6010236740112305,
+                    "n_mallocs": 4,
+                    "n_peak_mb": 2.2553443908691406,
+                    "n_python_fraction": 0.1889096459602088,
+                    "n_sys_percent": 0.10530061421696736,
+                    "n_usage_fraction": 0.10282622459886812
+                },
+                {
+                    "line": "        fun_call_query = self.language.query(\n",
+                    "lineno": 362,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0026535704084339694,
+                    "n_cpu_percent_python": 0.3401083133374061,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.3398718069340566,
+                    "n_usage_fraction": 0.0
+                }
+            ],
+            "percent_cpu_time": 5.862431990673195
+        },
+        "/home/fox/Projects/Python/repo-review/src/files_from_github.py": {
+            "functions": [
+                {
+                    "line": "SourceFileLoader.github_hooks",
+                    "lineno": 17,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0008188625943685439,
+                    "n_cpu_percent_python": 0.07490852987880454,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.0003563146184425664,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "get_repository",
+                    "lineno": 21,
+                    "memory_samples": [
+                        [
+                            995824580,
+                            60.41722036587859
+                        ]
+                    ],
+                    "n_avg_mb": 1.477818489074707,
+                    "n_copy_mb_s": 2.7030754846784157,
+                    "n_cpu_percent_c": 0.008322574041475104,
+                    "n_cpu_percent_python": 0.2760386687413575,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 1.477818489074707,
+                    "n_malloc_mb": 1.477818489074707,
+                    "n_mallocs": 1,
+                    "n_peak_mb": 1.477818489074707,
+                    "n_python_fraction": 0.882192,
+                    "n_sys_percent": 1.808951799790834,
+                    "n_usage_fraction": 0.019991846150080973
+                }
+            ],
+            "leaks": {},
+            "lines": [
+                {
+                    "line": "from github import Github, GithubException\n",
+                    "lineno": 5,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.025931247395596334,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 4.437965393066406,
+                    "n_malloc_mb": 4.437965393066406,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 4.437965393066406,
+                    "n_python_fraction": 0.9877454384926843,
+                    "n_sys_percent": 0.0,
+                    "n_usage_fraction": 0.06003654847566471
+                },
+                {
+                    "line": "from option import Option, Result\n",
+                    "lineno": 9,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 1.478074073791504,
+                    "n_malloc_mb": 1.478074073791504,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 1.478074073791504,
+                    "n_python_fraction": 0.980181,
+                    "n_sys_percent": 0.0,
+                    "n_usage_fraction": 0.019995303685884112
+                },
+                {
+                    "line": "from streamlit import secrets\n",
+                    "lineno": 10,
+                    "memory_samples": [
+                        [
+                            80732619,
+                            7.893608123344244
+                        ],
+                        [
+                            300694575,
+                            14.825521938819184
+                        ],
+                        [
+                            418553267,
+                            22.811471085275162
+                        ],
+                        [
+                            517309890,
+                            30.662840298208188
+                        ],
+                        [
+                            603706684,
+                            38.587872930681115
+                        ],
+                        [
+                            715623724,
+                            45.97109756472789
+                        ],
+                        [
+                            799112549,
+                            52.551779090080984
+                        ]
+                    ],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 12.341660258457754,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 46.94546699523926,
+                    "n_malloc_mb": 53.012932777404785,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 46.94546699523926,
+                    "n_python_fraction": 0.9785938994635164,
+                    "n_sys_percent": 0.0,
+                    "n_usage_fraction": 0.7171559997967278
+                },
+                {
+                    "line": "    return pipe(secret['github_token'], loads, _['secondary'], Github)\n",
+                    "lineno": 18,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0008188625943685439,
+                    "n_cpu_percent_python": 0.07490852987880454,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.0003563146184425664,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "    return pipe(repository_link.removeprefix('https://github.com/'), hooks.get_repo)\n",
+                    "lineno": 25,
+                    "memory_samples": [
+                        [
+                            995824580,
+                            60.41606660467529
+                        ]
+                    ],
+                    "n_avg_mb": 1.477818489074707,
+                    "n_copy_mb_s": 2.7030754846784157,
+                    "n_cpu_percent_c": 0.008322574041475104,
+                    "n_cpu_percent_python": 0.2760386687413575,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 1.477818489074707,
+                    "n_malloc_mb": 1.477818489074707,
+                    "n_mallocs": 1,
+                    "n_peak_mb": 1.477818489074707,
+                    "n_python_fraction": 0.882192,
+                    "n_sys_percent": 1.808951799790834,
+                    "n_usage_fraction": 0.019991846150080973
+                },
+                {
+                    "line": "    return repository.map(lambda repository: repository.get_contents(directory))\n",
+                    "lineno": 43,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.6507204475843225,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 16.207741662382812,
+                    "n_usage_fraction": 0.0
+                }
+            ],
+            "percent_cpu_time": 19.02785885963237
+        },
+        "/home/fox/Projects/Python/repo-review/src/graphing.py": {
+            "functions": [
+                {
+                    "line": "parse_file",
+                    "lineno": 24,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.12354645597534906,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.17749751027406452,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "build_graphs_for_project",
+                    "lineno": 96,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 4.789377481084894e-05,
+                    "n_cpu_percent_python": 3.14281086129132,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 55.48634711781539,
+                    "n_usage_fraction": 0.0
+                }
+            ],
+            "leaks": {},
+            "lines": [
+                {
+                    "line": "import networkx as nx\n",
+                    "lineno": 6,
+                    "memory_samples": [
+                        [
+                            922776075,
+                            54.03246075467793
+                        ]
+                    ],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.0,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 5.913247108459473,
+                    "n_malloc_mb": 5.913247108459473,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 5.913247108459473,
+                    "n_python_fraction": 0.9656480176900564,
+                    "n_sys_percent": 0.0,
+                    "n_usage_fraction": 0.07999407729277423
+                },
+                {
+                    "line": "    tree = custom_language_parser.parser.parse(file_bytes)\n",
+                    "lineno": 31,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 0.0,
+                    "n_cpu_percent_python": 0.12354645597534906,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 0.17749751027406452,
+                    "n_usage_fraction": 0.0
+                },
+                {
+                    "line": "            file_contents = filepath_pre.decoded_content\n",
+                    "lineno": 129,
+                    "memory_samples": [],
+                    "n_avg_mb": 0.0,
+                    "n_copy_mb_s": 0.0,
+                    "n_cpu_percent_c": 4.7893774810848934e-05,
+                    "n_cpu_percent_python": 3.1428108612913195,
+                    "n_gpu_avg_memory_mb": 0.0,
+                    "n_gpu_peak_memory_mb": 0.0,
+                    "n_gpu_percent": 0,
+                    "n_growth_mb": 0.0,
+                    "n_malloc_mb": 0.0,
+                    "n_mallocs": 0,
+                    "n_peak_mb": 0.0,
+                    "n_python_fraction": 0,
+                    "n_sys_percent": 55.48634711781539,
+                    "n_usage_fraction": 0.0
+                }
+            ],
+            "percent_cpu_time": 58.93024983913093
+        }
+    },
+    "gpu": false,
+    "growth_rate": 86.63661250974383,
+    "max_footprint_fname": "/home/fox/Projects/Python/repo-review/src/custom_language_parsers.py",
+    "max_footprint_lineno": 362,
+    "max_footprint_mb": 64.04270362854004,
+    "memory": true,
+    "program": "src/streamlit_ui.py",
+    "samples": [
+        [
+            80721584,
+            7.871763220684231
+        ],
+        [
+            300676346,
+            14.822427941330456
+        ],
+        [
+            407174424,
+            21.232430519786426
+        ],
+        [
+            507504635,
+            29.09124125943389
+        ],
+        [
+            573394788,
+            35.55632974617283
+        ],
+        [
+            715585242,
+            44.32312134901915
+        ],
+        [
+            776652316,
+            50.83286701104418
+        ],
+        [
+            943389992,
+            57.27695458378195
+        ],
+        [
+            9209439141,
+            63.71022594312001
+        ]
+    ]
+}
