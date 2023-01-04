@@ -31,6 +31,7 @@ pytest-cov = "^4.0.0"
 ipykernel = "^6.19.2"
 pre-commit = "^2.20.0"
 scalene = "^1.5.16"
+flake8 = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
