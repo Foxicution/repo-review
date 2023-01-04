@@ -1,36 +1,15 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
+from typing import Optional
 
 from tree_sitter_languages import get_language, get_parser
 
 
+@dataclass
 class ImportedModule:
-    def __init__(
-        self, module_base_name: str, alias: str = None, imported_objects: list = None
-    ) -> None:
-        self.module_base_name = module_base_name
-        self.alias = alias
-        self.imported_objects = imported_objects
-
-    @classmethod
-    def from_tree_node(cls, tree_node):
-        module_base_name = None
-        alias = None
-        imported_objects = None
-        if tree_node.type == 'import_from_statement':
-            module_base_name = tree_node.named_children[0].text.decode('ascii')
-            imported_objects = [
-                ch.text.decode('ascii') for ch in tree_node.named_children[1:]
-            ]
-
-        elif tree_node.type == 'import_statement':
-            for child in tree_node.children:
-                if child.type == 'dotted_name':
-                    module_base_name = child.text.decode('ascii')
-                elif child.type == 'aliased_import':
-                    module_base_name = child.named_children[0].text.decode('ascii')
-                    alias = child.named_children[1].text.decode('ascii')
-        return cls(module_base_name, alias, imported_objects)
+    module_base_name: str
+    alias: str = None
+    imported_objects: list = field(default_factory=list)
 
     def __str__(self) -> str:
         if self.alias is None:
@@ -38,14 +17,15 @@ class ImportedModule:
         return f'{self.module_base_name} as {self.alias}'
 
 
-def match_function_call_to_imported_module(function_call, imported_modules):
+def get_imported_module_for_function_call(
+    function_call: str, imported_modules: list[ImportedModule]
+) -> Optional[ImportedModule]:
     for imported_module in imported_modules:
-        if function_call in imported_module.module_base_name.split('.'):
-            return imported_module
-        if imported_module.imported_objects is not None:
-            for imported_object in imported_module.imported_objects:
-                if function_call == imported_object:
-                    return imported_module
+        if imported_module.imported_objects is None:
+            continue
+        for imported_object in imported_module.imported_objects:
+            if function_call == imported_object:
+                return imported_module
     return None
 
 
@@ -53,8 +33,12 @@ def match_function_call_to_imported_module(function_call, imported_modules):
 class CustomLanguageSyntaxParser:
     name: str = 'python'
     extension: str = 'py'
-    parser: object = get_parser('python')
-    language: object = get_language('python')
+    parser: object = Optional[object]
+    language: object = Optional[object]
+
+    def __post_init__(self):
+        self.parser = get_parser(self.name)
+        self.language = get_language(self.name)
 
     def get_function_definitions(self, tree_node) -> list:
         raise NotImplementedError
@@ -74,42 +58,41 @@ class CustomLanguageSyntaxParser:
 
     def build_call_graph(
         self,
-        cur_graph,
-        function_definitions=None,
-        module_name=None,
-        imported_modules=None,
-    ):
+        cur_graph: object,
+        function_definitions: list = None,
+        module_name: str = None,
+        imported_modules: list = None,
+    ) -> object:
         raise NotImplementedError
 
-    def function_to_call_graph(
+    def add_function_to_call_graph(
         self,
-        function,
-        full_graph,
-        function_definition_names=None,
-        module_name=None,
-        imported_modules=None,
-    ):
+        function: object,
+        full_graph: object,
+        module_name: str,
+        function_definition_names: Optional[list] = None,
+        imported_modules: Optional[list] = None,
+    ) -> None:
+
         function_name = self.get_function_name_from_node(function)
         function_calls = self.get_calls_in_node(function)
-        add_module_name = function_definition_names is not None and module_name is not None
-        if add_module_name:
-            function_name = module_name + '.' + function_name
+
+        function_name = module_name + '.' + function_name
         full_graph.add_node(function_name, content=function.text.decode('ascii'))
+
         for function_call in function_calls:
             function_call_name = self.function_call_to_text(function_call)
-            if add_module_name:
-                if function_call_name in function_definition_names:
-                    function_call_name = module_name + '.' + function_call_name
-                elif imported_modules is not None:
-                    matches_imported_module = match_function_call_to_imported_module(
-                        function_call_name, imported_modules
+            if function_call_name in function_definition_names:
+                function_call_name = module_name + '.' + function_call_name
+            elif imported_modules is not None:
+                matching_imported_module = get_imported_module_for_function_call(
+                    function_call_name, imported_modules
+                )
+                if matching_imported_module is not None:
+                    function_call_name = (
+                        matching_imported_module.module_base_name + '.' + function_call_name
                     )
-                    if matches_imported_module is not None:
-                        function_call_name = (
-                            matches_imported_module.module_base_name
-                            + '.'
-                            + function_call_name
-                        )
+
             full_graph.add_node(function_call_name)
             full_graph.add_edge(function_name, function_call_name)
 
@@ -134,19 +117,6 @@ class CustomLanguageSyntaxParser:
 class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
     name: str = 'javascript'
     extension: str = 'js'
-    parser: object = get_parser('javascript')
-    language: object = get_language('javascript')
-    function_identifiers: list[str] = field(
-        default_factory=lambda: ['function_definition', 'function_item']
-    )
-    import_identifiers: list[str] = field(
-        default_factory=lambda: [
-            'import_statement',
-            'import_from_statement',
-            'lexical_declaration',
-            'require_call',
-        ]
-    )
     call_identifiers: list[str] = field(default_factory=lambda: ['call_expression'])
 
     @staticmethod
@@ -262,12 +232,12 @@ class CustomJavascriptSyntaxParser(CustomLanguageSyntaxParser):
             for function_definition in function_definitions
         ]
         for function_definition in function_definitions:
-            self.function_to_call_graph(
-                function_definition,
-                cur_graph,
-                function_definition_names,
-                module_name,
-                imported_modules,
+            self.add_function_to_call_graph(
+                function=function_definition,
+                full_graph=cur_graph,
+                module_name=module_name,
+                function_definition_names=function_definition_names,
+                imported_modules=imported_modules,
             )
 
 
@@ -277,8 +247,9 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
         name = node.named_children[0].text.decode('ascii')
         return name
 
-    def get_imports(self, tree_node):
+    def get_imports(self, tree_node) -> list[ImportedModule]:
         imported_modules = {}
+        # TODO: Fix query to only match import_from once, remove dict fix
         query_import = self.language.query(
             """
             (import_from_statement
@@ -300,34 +271,22 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
         import_captures = query_import.captures(tree_node)
         import_iter = iter(import_captures)
         last_key = ''
-        while import_iter:
-            import_obj = next(import_iter, None)
-            if import_obj is None:
-                break
+        for import_obj in import_iter:
             import_type = import_obj[1]
-            if import_type == 'import_from':
-                module_name = import_obj[0].text.decode('ascii')
-                imported_module = ImportedModule(
-                    module_base_name=module_name,
-                    imported_objects=[],
-                )
-                last_key = module_name
-                imported_modules[module_name] = imported_module
+            obj_name = import_obj[0].text.decode('ascii')
+            match import_type:
+                case 'import_from' | 'import_base':
+                    imported_module = ImportedModule(
+                        module_base_name=obj_name,
+                        imported_objects=[],
+                    )
+                    last_key = obj_name
+                    imported_modules[obj_name] = imported_module
+                case 'imported_from':
+                    imported_modules[last_key].imported_objects.append(obj_name)
+                case 'import_alias':
+                    imported_modules[last_key].alias = obj_name
 
-            elif import_type == 'imported_from':
-                imported_object = import_obj[0].text.decode('ascii')
-                imported_modules[last_key].imported_objects.append(imported_object)
-            elif import_type == 'import_base':
-                module_name = import_obj[0].text.decode('ascii')
-                imported_module = ImportedModule(
-                    module_base_name=module_name,
-                    imported_objects=[],
-                )
-                last_key = module_name
-                imported_modules[module_name] = imported_module
-            elif import_type == 'import_alias':
-                alias_name = import_obj[0].text.decode('ascii')
-                imported_modules[last_key].alias = alias_name
         imported_modules = list(imported_modules.values())
         return imported_modules
 
@@ -388,40 +347,38 @@ class CustomPythonSyntaxParser(CustomLanguageSyntaxParser):
             for function_definition in function_definitions
         ]
         for function_definition in function_definitions:
-            self.function_to_call_graph(
-                function_definition,
-                cur_graph,
-                function_definition_names,
-                module_name,
-                imported_modules,
+            self.add_function_to_call_graph(
+                function=function_definition,
+                full_graph=cur_graph,
+                module_name=module_name,
+                function_definition_names=function_definition_names,
+                imported_modules=imported_modules,
             )
 
 
 PythonSyntaxParser = CustomPythonSyntaxParser(
     name='python',
     extension='py',
-    parser=get_parser('python'),
-    language=get_language('python'),
 )
 
-JavascriptSyntaxParser = CustomJavascriptSyntaxParser()
+JavascriptSyntaxParser = CustomJavascriptSyntaxParser(
+    name='javascript',
+    extension='js',
+)
 
 CSharpSyntaxParser = CustomLanguageSyntaxParser(
-    name='c-sharp',
+    name='c_sharp',
     extension='cs',
-    parser=get_parser('c_sharp'),
 )
 
 JavaSyntaxParser = CustomLanguageSyntaxParser(
     name='java',
     extension='java',
-    parser=get_parser('java'),
 )
 
 RustSyntaxParser = CustomLanguageSyntaxParser(
     name='rust',
     extension='rs',
-    parser=get_parser('rust'),
 )
 
 # Top 5 programming languages and their extensions
