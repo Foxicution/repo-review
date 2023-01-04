@@ -21,10 +21,11 @@ def get_imported_module_for_function_call(
     function_call: str, imported_modules: list[ImportedModule]
 ) -> Optional[ImportedModule]:
     for imported_module in imported_modules:
-        if imported_module.imported_objects is not None:
-            for imported_object in imported_module.imported_objects:
-                if function_call == imported_object:
-                    return imported_module
+        if imported_module.imported_objects is None:
+            continue
+        for imported_object in imported_module.imported_objects:
+            if function_call == imported_object:
+                return imported_module
     return None
 
 
