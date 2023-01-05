@@ -5,8 +5,8 @@ from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
-app.mount("frontend/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="frontend/templates")
+app.mount("/frontend/static", StaticFiles(directory="frontend/static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
