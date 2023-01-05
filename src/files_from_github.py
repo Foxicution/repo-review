@@ -5,7 +5,6 @@ from typing import Iterator, List
 from github import Github, GithubException
 from github.ContentFile import ContentFile
 from github.Repository import Repository
-from lambdas import _
 from option import Option, Result
 from streamlit import secrets
 from streamlit.runtime.secrets import Secrets
@@ -15,7 +14,7 @@ from generics import call_on_input, try_decorator
 
 
 def github_hooks(secret: Secrets = secrets) -> Github:
-    return pipe(secret['github_token'], loads, _['secondary'], Github)
+    return pipe(secret['github_token'], loads, lambda tokens: tokens['secondary'], Github)
 
 
 @try_decorator
