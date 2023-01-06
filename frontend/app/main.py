@@ -20,7 +20,13 @@ async def home(request: Request):
     return templates.TemplateResponse("page.html", {"request": request, "data": data})
 
 
-@app.get("/page/{page_name}", response_class=HTMLResponse)
-async def page(request: Request, page_name: str):
+@app.get("/tool", response_class=HTMLResponse)
+async def tool(request: Request):
+    data = {"page": "Tool page"}
+    return templates.TemplateResponse("page.html", {"request": request, "data": data})
+
+
+@app.get("/tool/{page_name}", response_class=HTMLResponse)
+async def repo(request: Request, page_name: str):
     data = {"page": page_name}
     return templates.TemplateResponse("page.html", {"request": request, "data": data})
