@@ -2,6 +2,10 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from toolz.functoolz import pipe
+
+from src.files_from_github import file_list
+from src.graphing import get_network_from_gh_filelist
 
 app = FastAPI()
 
@@ -28,5 +32,10 @@ async def tool(request: Request):
 
 @app.get("/tool/{page_name}", response_class=HTMLResponse)
 async def repo(request: Request, page_name: str):
-    data = {"page": page_name}
+    graph = pipe(
+        "https://github.com/python/mypy",
+        file_list,
+        get_network_from_gh_filelist,
+    )
+    data = {"page": graph.__str__()}
     return templates.TemplateResponse("page.html", {"request": request, "data": data})
