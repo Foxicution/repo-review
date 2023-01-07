@@ -46,6 +46,7 @@ def pull_repo(repo_path) -> Repo:
     return repo
 
 
+# TODO: add Result monad to handle errors
 def get_repo(repo_url: str) -> Repo:
     """clones a repository to a local directory"""
     repo_path = f"repos/{pipe(repo_url, format_repo_url, to_url)}"
