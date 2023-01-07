@@ -1,14 +1,13 @@
-from dataclasses import dataclass
 from os.path import exists
 from urllib.parse import quote, unquote
 
 from git import Tree
 from git.repo import Repo
+from pydantic import BaseModel
 from toolz.functoolz import pipe
 
 
-@dataclass
-class File:
+class File(BaseModel):
     """Class that represents a file in a repository"""
 
     path: str
