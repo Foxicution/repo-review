@@ -1,3 +1,22 @@
+currated_language_list = {
+    "python": [
+        ".py",
+        ".bzl",
+        ".cgi",
+        ".fcgi",
+        ".gyp",
+        ".lmi",
+        ".pyde",
+        ".pyp",
+        ".pyt",
+        ".pyw",
+        ".rpy",
+        ".tac",
+        ".wsgi",
+        ".xpy",
+    ]
+}
+
 languages = [
     {"name": "ABAP", "type": "programming", "extensions": [".abap"]},
     {"name": "AGS Script", "type": "programming", "extensions": [".asc", ".ash"]},
