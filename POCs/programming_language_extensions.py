@@ -1,5 +1,5 @@
 currated_language_list = {
-    "python": [
+    "python": (
         ".py",
         ".bzl",
         ".cgi",
@@ -14,7 +14,7 @@ currated_language_list = {
         ".tac",
         ".wsgi",
         ".xpy",
-    ]
+    )
 }
 
 languages = [
