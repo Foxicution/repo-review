@@ -24,6 +24,32 @@ toolz = "*"
 dev = ["black", "docutils", "flake8", "ipython", "m2r", "mistune (<2.0.0)", "pytest", "recommonmark", "sphinx", "vega-datasets"]
 
 [[package]]
+name = "antlr4-python3-runtime"
+version = "4.11.1"
+description = "ANTLR 4.11.1 runtime for Python 3"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "antlr4-python3-runtime-4.11.1.tar.gz", hash = "sha256:a53de701312f9bdacc5258a6872cd6c62b90d3a90ae25e494026f76267333b60"},
+    {file = "antlr4_python3_runtime-4.11.1-py3-none-any.whl", hash = "sha256:ff1954eda1ca9072c02bf500387d0c86cb549bef4dbb3b64f39468b547ec5f6b"},
+]
+
+[[package]]
+name = "antlr4-tools"
+version = "0.1"
+description = "Tools to run ANTLR4 tool and grammar interpreter/profiler"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "antlr4-tools-0.1.tar.gz", hash = "sha256:a047bde8c1b980c3ed40259949b11c396c3918b93a62ed3b1297f78c629e71bf"},
+]
+
+[package.dependencies]
+install-jdk = "*"
+
+[[package]]
 name = "anyio"
 version = "3.6.2"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
@@ -1047,6 +1073,17 @@ python-versions = "*"
 files = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
+]
+
+[[package]]
+name = "install-jdk"
+version = "0.3.0"
+description = "Installs AdoptOpenJDK Java"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "install-jdk-0.3.0.tar.gz", hash = "sha256:889965b0af68bb4669166804f33d5dce9cd6cf57f02a045e427e508998d569a1"},
 ]
 
 [[package]]
@@ -3454,4 +3491,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "093fa5fa285748a621757ff69a859724f19b7f3967290befefb06706f39b48dc"
+content-hash = "fb84ef7e79fc6a96975af047932426b9311040764c3d1178743bd0a43dbfe9d4"
