@@ -65,8 +65,13 @@ def repo_file_list(repo: Repo) -> list[File]:
     return list(traverse_tree(tree))
 
 
+def files_from_repository(repo_url: str) -> list[File]:
+    """returns the contents of all files in a repository"""
+    return pipe(repo_url, get_repo, repo_file_list)
+
+
 def main():
-    pipe("https://github.com/Foxicution/repo-review", get_repo, repo_file_list)
+    files_from_repository("https://github.com/Foxicution/repo-review")
 
 
 if __name__ == "__main__":
