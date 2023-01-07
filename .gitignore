@@ -1,3 +1,4 @@
 .streamlit/secrets.toml
 secrets/
 /repos
+/scripts/generate_antlr_parsers.sh
