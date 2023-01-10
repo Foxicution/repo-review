@@ -3,3 +3,4 @@ secrets/
 /repos
 /scripts/generate_antlr_parsers.sh
 /POCs/lib
+/POCs/repos
